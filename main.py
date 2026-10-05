@@ -153,6 +153,11 @@ async def sync_approved_items(client: TelegramClient, api_client: FcisApiClient,
                 continue
 
             original_filename = getattr(target_msg.file, 'name', None) or f"{title}.pdf"
+            ext = os.path.splitext(original_filename)[1].lower()
+            if ext not in ['.pdf', '.docx', '.pptx', '.xlsx', '.png', '.jpg', '.jpeg']:
+                logger.warning("Skipping '%s' (%s) - unsupported extension '%s'.", title, original_filename, ext)
+                continue
+
             temp_file_path = os.path.join(TEMP_DIR, f"{msg_id}_{original_filename}")
             
             logger.info("Downloading file from Telegram (Msg: %s)...", msg_id)

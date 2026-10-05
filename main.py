@@ -44,12 +44,44 @@ async def send_admin_alert(client: TelegramClient, message_text: str):
     except Exception as e:
         logger.warning("Could not send alert to %s: %s", ADMIN_PERSONAL_TARGET, e)
 
-async def scan_overview_items(client: TelegramClient, api_client: FcisApiClient, community_entity, limit: int = 100):
+async def scan_overview_items(client: TelegramClient, api_client: FcisApiClient, community_entity, limit: int = 150):
     discovered = []
-    
-    async for msg in client.iter_messages(community_entity, limit=limit):
+    seen_msg_ids = set()
+    candidate_messages = []
+
+    # 1. Search for overview messages across group history (server-side search)
+    for term in ["مجمعة", "Lectures"]:
+        try:
+            async for msg in client.iter_messages(community_entity, search=term, limit=50):
+                if msg.id not in seen_msg_ids:
+                    seen_msg_ids.add(msg.id)
+                    candidate_messages.append(msg)
+        except Exception as e:
+            logger.warning("Search for '%s' failed: %s", term, e)
+
+    # 2. Add pinned messages
+    try:
+        from telethon.tl import types
+        async for msg in client.iter_messages(community_entity, filter=types.InputMessagesFilterPinned(), limit=30):
+            if msg.id not in seen_msg_ids:
+                seen_msg_ids.add(msg.id)
+                candidate_messages.append(msg)
+    except Exception as e:
+        logger.debug("Pinned messages fetch: %s", e)
+
+    # 3. Add recent messages
+    try:
+        async for msg in client.iter_messages(community_entity, limit=limit):
+            if msg.id not in seen_msg_ids:
+                seen_msg_ids.add(msg.id)
+                candidate_messages.append(msg)
+    except Exception as e:
+        logger.warning("Recent messages fetch: %s", e)
+
+    # Process candidate messages
+    for msg in candidate_messages:
         text = msg.text or ""
-        if "رسالة مجمعة" not in text and "Lectures" not in text:
+        if "مجمعة" not in text and "Lectures" not in text:
             continue
 
         items = parse_overview_message(text, msg.entities)
@@ -66,26 +98,27 @@ async def scan_overview_items(client: TelegramClient, api_client: FcisApiClient,
             if is_already_synced(topic_id, msg_id):
                 continue
 
-            # Fetch metadata of target file
-            target_msg = await client.get_messages(chat, ids=msg_id)
-            if not target_msg or not target_msg.media:
-                continue
+            try:
+                target_msg = await client.get_messages(chat, ids=msg_id)
+                if not target_msg or not target_msg.media:
+                    continue
 
-            file_name = getattr(target_msg.file, 'name', None) or f"{item['title']}.pdf"
-            file_size = getattr(target_msg.file, 'size', 0)
-            
-            subject_id = api_client.resolve_subject_id(topic_id, subject_info.get("name"))
+                file_name = getattr(target_msg.file, 'name', None) or f"{item['title']}.pdf"
+                file_size = getattr(target_msg.file, 'size', 0)
+                subject_id = api_client.resolve_subject_id(topic_id, subject_info.get("name"))
 
-            discovered.append({
-                "messageId": msg_id,
-                "topicId": topic_id,
-                "title": item["title"],
-                "type": item["type"],
-                "subjectId": subject_id,
-                "subjectName": subject_info.get("name") or f"Topic {topic_id}",
-                "originalFileName": file_name,
-                "fileSize": file_size
-            })
+                discovered.append({
+                    "messageId": msg_id,
+                    "topicId": topic_id,
+                    "title": item["title"],
+                    "type": item["type"],
+                    "subjectId": subject_id,
+                    "subjectName": subject_info.get("name") or f"Topic {topic_id}",
+                    "originalFileName": file_name,
+                    "fileSize": file_size
+                })
+            except Exception as e:
+                logger.warning("Error fetching target message %s: %s", msg_id, e)
 
     return discovered
 

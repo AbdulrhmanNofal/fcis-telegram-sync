@@ -89,11 +89,11 @@ def parse_overview_message(text: str, entities: list = None) -> List[Dict[str, A
     return items
 
 def _process_link(raw_label: str, url: str) -> Optional[Dict[str, Any]]:
-    normalized_label = normalize_text(raw_label).upper()
+    clean_label = re.sub(r'[*_~`\s]', '', normalize_text(raw_label)).upper()
     
     # Check if this is a lecture (L01, L02, LEC 1, etc.)
-    lec_match = re.match(r'^L(?:EC)?[\s_-]*0*(\d+)$', normalized_label)
-    sec_match = re.match(r'^S(?:EC)?[\s_-]*0*(\d+)$', normalized_label)
+    lec_match = re.match(r'^L(?:EC)?0*(\d+)$', clean_label)
+    sec_match = re.match(r'^(?:S(?:EC)?|H)0*(\d+)$', clean_label)
     
     if lec_match:
         num = int(lec_match.group(1))
@@ -113,7 +113,7 @@ def _process_link(raw_label: str, url: str) -> Optional[Dict[str, Any]]:
 
     return {
         'raw_label': raw_label,
-        'normalized_code': normalized_label,
+        'normalized_code': clean_label,
         'title': title,
         'type': item_type,
         'url': url,

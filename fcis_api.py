@@ -76,6 +76,36 @@ class FcisApiClient:
 
         return None
 
+    def get_existing_materials(self, subject_id: int) -> set:
+        if not hasattr(self, "_existing_materials_cache"):
+            self._existing_materials_cache = {}
+            
+        if subject_id in self._existing_materials_cache:
+            return self._existing_materials_cache[subject_id]
+            
+        existing = set()
+        try:
+            url = f"{self.base_url}/materials?subjectId={subject_id}&pageSize=50"
+            resp = requests.get(url, timeout=10)
+            if resp.status_code == 200:
+                items = resp.json().get("data", {}).get("items", [])
+                for item in items:
+                    title = item.get("title", "").strip().lower()
+                    m_type = item.get("type", "").strip().lower()
+                    existing.add((title, m_type))
+            self._existing_materials_cache[subject_id] = existing
+        except Exception as e:
+            logger.warning("Could not fetch existing materials for subject %s: %s", subject_id, e)
+            
+        return existing
+
+    def is_material_already_on_platform(self, subject_id: int, title: str, material_type: str) -> bool:
+        if not subject_id:
+            return False
+        existing = self.get_existing_materials(subject_id)
+        key = (title.strip().lower(), material_type.strip().lower())
+        return key in existing
+
     def upload_material(self, file_path: str, title: str, material_type: str, subject_id: int) -> Optional[Dict[str, Any]]:
         """
         Uploads a material file to POST /api/materials/upload

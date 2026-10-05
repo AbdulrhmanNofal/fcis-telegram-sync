@@ -106,6 +106,7 @@ async def scan_overview_items(client: TelegramClient, api_client: FcisApiClient,
                 file_name = getattr(target_msg.file, 'name', None) or f"{item['title']}.pdf"
                 file_size = getattr(target_msg.file, 'size', 0)
                 subject_id = api_client.resolve_subject_id(topic_id, subject_info.get("name"))
+                already_uploaded = api_client.is_material_already_on_platform(subject_id, item["title"], item["type"])
 
                 discovered.append({
                     "messageId": msg_id,
@@ -115,7 +116,9 @@ async def scan_overview_items(client: TelegramClient, api_client: FcisApiClient,
                     "subjectId": subject_id,
                     "subjectName": subject_info.get("name") or f"Topic {topic_id}",
                     "originalFileName": file_name,
-                    "fileSize": file_size
+                    "fileSize": file_size,
+                    "alreadyUploaded": already_uploaded,
+                    "selected": not already_uploaded
                 })
             except Exception as e:
                 logger.warning("Error fetching target message %s: %s", msg_id, e)
@@ -125,6 +128,7 @@ async def scan_overview_items(client: TelegramClient, api_client: FcisApiClient,
 async def sync_approved_items(client: TelegramClient, api_client: FcisApiClient, community_entity, items_to_sync):
     uploaded = []
     failed = []
+    skipped = []
 
     for item in items_to_sync:
         msg_id = item["messageId"]
@@ -133,6 +137,13 @@ async def sync_approved_items(client: TelegramClient, api_client: FcisApiClient,
         material_type = item["type"]
         subject_id = int(item["subjectId"])
         subject_name = item.get("subjectName", "")
+
+        # Live Deduplication check: Do not re-download or re-upload if already on platform
+        if api_client.is_material_already_on_platform(subject_id, title, material_type):
+            logger.info("Skipping '%s' (%s) - already exists on platform.", title, material_type)
+            record_synced(topic_id, msg_id, material_type, title, subject_id)
+            skipped.append(title)
+            continue
 
         try:
             target_msg = await client.get_messages(community_entity, ids=msg_id)
@@ -179,15 +190,16 @@ async def sync_approved_items(client: TelegramClient, api_client: FcisApiClient,
             failed.append({"messageId": msg_id, "error": str(e)})
 
     # Summary alert
-    if uploaded:
+    if uploaded or skipped or failed:
         summary_text = (
-            f"📊 **تقرير المزامنة والتأكيد**\n\n"
-            f"✅ **تم نشر:** {len(uploaded)} ملفات بنجاح في المنصة.\n"
+            f"📊 **تقرير المزامنة الذكية من تليجرام**\n\n"
+            f"✅ **تم نشر (جديد):** {len(uploaded)} ملفات بنجاح في المنصة.\n"
+            f"⏭️ **تم تخطي (مرفوع مسبقاً):** {len(skipped)} ملفات.\n"
             f"❌ **أخطاء:** {len(failed)}"
         )
         await send_admin_alert(client, summary_text)
 
-    return {"uploaded": uploaded, "failed": failed}
+    return {"uploaded": uploaded, "skipped": skipped, "failed": failed}
 
 async def main():
     parser = argparse.ArgumentParser(description="FCIS Hub Telegram Sync Tool")

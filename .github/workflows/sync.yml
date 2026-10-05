@@ -1,9 +1,14 @@
 name: FCIS Telegram Sync
 
 on:
-  workflow_dispatch: # زر التشغيل اليدوي من GitHub
+  workflow_dispatch:
+    inputs:
+      approved_items:
+        description: 'JSON array of approved items to sync'
+        required: false
+        default: ''
   schedule:
-    - cron: '0 19 * * *' # تشغيل تلقائي يومياً الساعة 9 مساءً بتوقيت مصر (19:00 UTC)
+    - cron: '0 19 * * *'
 
 jobs:
   sync:
@@ -34,5 +39,12 @@ jobs:
           FCIS_ADMIN_EMAIL: ${{ secrets.FCIS_ADMIN_EMAIL }}
           FCIS_ADMIN_PASSWORD: ${{ secrets.FCIS_ADMIN_PASSWORD }}
           ADMIN_PERSONAL_TARGET: ${{ secrets.ADMIN_PERSONAL_TARGET }}
+          APPROVED_ITEMS: ${{ inputs.approved_items }}
         run: |
-          python main.py
+          if [ -n "$APPROVED_ITEMS" ]; then
+            echo "Running sync for approved items..."
+            python main.py --sync-items "$APPROVED_ITEMS"
+          else
+            echo "Running standard full sync..."
+            python main.py
+          fi

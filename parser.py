@@ -91,9 +91,9 @@ def parse_overview_message(text: str, entities: list = None) -> List[Dict[str, A
 def _process_link(raw_label: str, url: str) -> Optional[Dict[str, Any]]:
     clean_label = re.sub(r'[*_~`\s]', '', normalize_text(raw_label)).upper()
     
-    # Check if this is a lecture (L01, L02, LEC 1, etc.)
-    lec_match = re.match(r'^L(?:EC)?0*(\d+)$', clean_label)
-    sec_match = re.match(r'^(?:S(?:EC)?|H)0*(\d+)$', clean_label)
+    # Check if this is a lecture (L01, L02, LEC 1, CH 1, etc.)
+    lec_match = re.match(r'^(?:L(?:EC)?|CH)0*(\d+)$', clean_label)
+    sec_match = re.match(r'^(?:S(?:EC)?|LAB|H)0*(\d+)$', clean_label)
     
     if lec_match:
         num = int(lec_match.group(1))

@@ -85,7 +85,7 @@ class FcisApiClient:
             
         existing = set()
         try:
-            url = f"{self.base_url}/materials?subjectId={subject_id}&pageSize=50"
+            url = f"{self.base_url}/materials?subjectId={subject_id}&pageSize=200"
             resp = requests.get(url, timeout=10)
             if resp.status_code == 200:
                 items = resp.json().get("data", {}).get("items", [])
@@ -110,15 +110,18 @@ class FcisApiClient:
         """
         Uploads a material file to POST /api/materials/upload
         """
+        import mimetypes
         url = f"{self.base_url}/materials/upload"
         if not self.token and not self.login():
             return None
 
         file_name = os.path.basename(file_path)
+        mime_type, _ = mimetypes.guess_type(file_name)
+        mime_type = mime_type or "application/octet-stream"
         
         with open(file_path, "rb") as f:
             files = {
-                "file": (file_name, f, "application/pdf")
+                "file": (file_name, f, mime_type)
             }
             data = {
                 "Title": title,

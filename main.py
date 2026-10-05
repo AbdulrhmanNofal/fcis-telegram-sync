@@ -81,22 +81,18 @@ async def scan_overview_items(client: TelegramClient, api_client: FcisApiClient,
     # Process candidate messages
     for msg in candidate_messages:
         text = msg.text or ""
-        if "مجمعة" not in text and "Lectures" not in text:
-            continue
-
         items = parse_overview_message(text, msg.entities)
-        subject_info = extract_subject_info(text)
+        if not items and "مجمعة" not in text and "Lectures" not in text:
+            continue
         if not items:
             continue
 
+        subject_info = extract_subject_info(text)
         chat = await msg.get_chat()
 
         for item in items:
             topic_id = str(item["topic_id"])
             msg_id = item["message_id"]
-
-            if is_already_synced(topic_id, msg_id):
-                continue
 
             try:
                 target_msg = await client.get_messages(chat, ids=msg_id)
@@ -154,7 +150,7 @@ async def sync_approved_items(client: TelegramClient, api_client: FcisApiClient,
 
             original_filename = getattr(target_msg.file, 'name', None) or f"{title}.pdf"
             ext = os.path.splitext(original_filename)[1].lower()
-            if ext not in ['.pdf', '.docx', '.pptx', '.xlsx', '.png', '.jpg', '.jpeg']:
+            if ext not in ['.pdf', '.docx', '.pptx', '.xlsx', '.png', '.jpg', '.jpeg', '.html', '.htm', '.zip']:
                 logger.warning("Skipping '%s' (%s) - unsupported extension '%s'.", title, original_filename, ext)
                 continue
 

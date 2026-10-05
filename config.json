@@ -1,9 +1,34 @@
 {
   "topics": {
     "17": {
-      "subjectId": 1,
-      "subjectName": "Web Development",
+      "subjectId": 4,
+      "subjectName": "تطوير تطبيقات الويب",
+      "englishName": "Web Development",
       "code": "WEB"
+    },
+    "14": {
+      "subjectId": 2,
+      "subjectName": "تنظيم ومعمارية الحاسب",
+      "englishName": "Computer Organization & Architecture",
+      "code": "Arc & Org"
+    },
+    "21": {
+      "subjectId": 3,
+      "subjectName": "نظم التشغيل",
+      "englishName": "Operating Systems",
+      "code": "OS"
+    },
+    "23": {
+      "subjectId": 1,
+      "subjectName": "هياكل البيانات وتحليل الخوارزميات",
+      "englishName": "Data-Structures & Algorithms",
+      "code": "DSA"
+    },
+    "19": {
+      "subjectId": 5,
+      "subjectName": "الجبر الخطي",
+      "englishName": "Linear Algebra",
+      "code": "LA"
     }
   },
   "auto_resolve_by_name": true,

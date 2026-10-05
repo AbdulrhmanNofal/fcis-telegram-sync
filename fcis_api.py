@@ -16,8 +16,9 @@ class FcisApiClient:
         
         # Load topic mapping config
         self.config: Dict[str, Any] = {}
-        if os.path.exists(config_path):
-            with open(config_path, "r", encoding="utf-8") as f:
+        resolved_config = config_path if os.path.isabs(config_path) else os.path.join(os.path.dirname(__file__), config_path)
+        if os.path.exists(resolved_config):
+            with open(resolved_config, "r", encoding="utf-8") as f:
                 self.config = json.load(f)
 
     def login(self) -> bool:

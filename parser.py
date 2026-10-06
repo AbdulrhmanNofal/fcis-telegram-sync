@@ -17,8 +17,6 @@ def extract_subject_info(text: str) -> Dict[str, Optional[str]]:
     Returns: {'name': 'Web Development', 'code': 'WEB'}
     """
     normalized = normalize_text(text)
-    
-    # Try pattern: مادة <Name> (<Code>)
     match = re.search(r'مادة\s+([^(]+?)(?:\s*\(([^)]+)\))?(?:\n|$)', normalized)
     if match:
         name = match.group(1).strip()
@@ -33,7 +31,6 @@ def parse_telegram_url(url: str) -> Optional[Dict[str, Any]]:
     e.g., https://t.me/FCISCommunity29/17/111 -> topic_id: '17', message_id: 111
     or https://t.me/c/123456789/111 -> message_id: 111
     """
-    # Pattern with topic: t.me/<channel_or_c>/<topic_id>/<message_id>
     match_topic = re.search(r't\.me/(?:c/)?([^/]+)/(\d+)/(\d+)', url)
     if match_topic:
         return {
@@ -42,7 +39,6 @@ def parse_telegram_url(url: str) -> Optional[Dict[str, Any]]:
             'message_id': int(match_topic.group(3))
         }
     
-    # Simple pattern: t.me/<channel_or_c>/<message_id>
     match_simple = re.search(r't\.me/(?:c/)?([^/]+)/(\d+)', url)
     if match_simple:
         return {
@@ -55,56 +51,76 @@ def parse_telegram_url(url: str) -> Optional[Dict[str, Any]]:
 
 def parse_overview_message(text: str, entities: list = None) -> List[Dict[str, Any]]:
     """
-    Parses the overview message and returns a list of items to sync.
-    Each item contains:
-    - code: e.g. 'L01'
-    - title: e.g. 'Lec 01' or 'Sec 01'
-    - type: 'Lecture' | 'Section' | 'Summary'
-    - url: Telegram link
-    - message_id: int
-    - topic_id: str
+    Strict block-level parser:
+    - ONLY extracts links located strictly under 'Lectures' or 'Sections' blocks.
+    - Completely ignores 'Recordings', 'HTML', Drive folders, and external links.
     """
     items = []
+    if not text:
+        return items
+
+    # Split message into blocks separated by box headers ╭━━
+    blocks = re.split(r'╭━━\s*', text)
     
-    # 1. First attempt: Parse markdown links [text](url)
-    md_matches = re.finditer(r'\[([^\]]+)\]\((https?://t\.me/[^\)]+)\)', text)
-    for m in md_matches:
-        raw_label = m.group(1)
-        url = m.group(2)
-        parsed_item = _process_link(raw_label, url)
-        if parsed_item:
-            items.append(parsed_item)
+    for block in blocks:
+        lines = block.split('\n')
+        header = lines[0].strip().lower()
+        
+        target_type = None
+        if 'lecture' in header or 'محاضر' in header:
+            target_type = 'Lecture'
+        elif 'section' in header or 'سكاشن' in header or 'سيكشن' in header:
+            target_type = 'Section'
+        else:
+            # Strictly skip any block that is NOT Lectures or Sections (e.g. HTML, Recordings, Books)
+            continue
             
-    # 2. If no markdown links found but entities provided (Telethon MessageEntityTextUrl)
-    if not items and entities:
-        for ent in entities:
-            # Telethon entity check
-            if hasattr(ent, 'url') and ent.url and 't.me/' in ent.url:
-                # Extract text slice for this entity
-                raw_label = text[ent.offset : ent.offset + ent.length]
-                parsed_item = _process_link(raw_label, ent.url)
-                if parsed_item:
-                    items.append(parsed_item)
-                    
+        md_matches = re.finditer(r'\[([^\]]+)\]\((https?://t\.me/[^\)]+)\)', block)
+        for m in md_matches:
+            raw_label = m.group(1)
+            url = m.group(2)
+            parsed_item = _process_block_link(raw_label, url, target_type)
+            if parsed_item:
+                items.append(parsed_item)
+
+    # Fallback only if no ╭━━ blocks exist at all
+    if not items and '╭━━' not in text:
+        md_matches = re.finditer(r'\[([^\]]+)\]\((https?://t\.me/[^\)]+)\)', text)
+        for m in md_matches:
+            raw_label = m.group(1)
+            url = m.group(2)
+            clean_label = re.sub(r'[*_~`\s]', '', normalize_text(raw_label)).upper()
+            if re.match(r'^(?:L(?:EC)?|CH)0*(\d+)$', clean_label):
+                parsed = _process_block_link(raw_label, url, 'Lecture')
+                if parsed: items.append(parsed)
+            elif re.match(r'^(?:S(?:EC)?|LAB)0*(\d+)$', clean_label):
+                parsed = _process_block_link(raw_label, url, 'Section')
+                if parsed: items.append(parsed)
+
     return items
 
-def _process_link(raw_label: str, url: str) -> Optional[Dict[str, Any]]:
+def _process_block_link(raw_label: str, url: str, expected_type: str) -> Optional[Dict[str, Any]]:
     clean_label = re.sub(r'[*_~`\s]', '', normalize_text(raw_label)).upper()
     
-    # Check if this is a lecture (L01, L02, LEC 1, CH 1, etc.)
-    lec_match = re.match(r'^(?:L(?:EC)?|CH)0*(\d+)$', clean_label)
-    sec_match = re.match(r'^(?:S(?:EC)?|LAB|H)0*(\d+)$', clean_label)
-    
-    if lec_match:
-        num = int(lec_match.group(1))
+    if expected_type == "Lecture":
+        lec_match = re.match(r'^(?:L(?:EC)?|CH)0*(\d+)$', clean_label)
+        if lec_match:
+            num = int(lec_match.group(1))
+            title = f"Lec {num:02d}"
+        else:
+            title = normalize_text(raw_label).strip()
         item_type = "Lecture"
-        title = f"Lec {num:02d}"
-    elif sec_match:
-        num = int(sec_match.group(1))
+    elif expected_type == "Section":
+        sec_match = re.match(r'^(?:S(?:EC)?|LAB)0*(\d+)$', clean_label)
+        if sec_match:
+            num = int(sec_match.group(1))
+            title = f"Sec {num:02d}"
+        elif "ALL" in clean_label and ("LAP" in clean_label or "LAB" in clean_label or "SEC" in clean_label):
+            title = "Sec 01"
+        else:
+            title = normalize_text(raw_label).strip()
         item_type = "Section"
-        title = f"Sec {num:02d}"
     else:
-        # Ignore non-lecture/non-section links (like bot deep links or other formats for now)
         return None
 
     tg_info = parse_telegram_url(url)

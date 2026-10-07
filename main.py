@@ -99,23 +99,49 @@ async def scan_overview_items(client: TelegramClient, api_client: FcisApiClient,
                 if not target_msg or not target_msg.media:
                     continue
 
-                file_name = getattr(target_msg.file, 'name', None) or f"{item['title']}.pdf"
-                file_size = getattr(target_msg.file, 'size', 0)
-                subject_id = api_client.resolve_subject_id(topic_id, subject_info.get("name"))
-                already_uploaded = api_client.is_material_already_on_platform(subject_id, item["title"], item["type"])
+                msgs_to_inspect = [target_msg]
+                if target_msg.grouped_id:
+                    try:
+                        surrounding = await client.get_messages(chat, ids=list(range(max(1, target_msg.id - 15), target_msg.id + 16)))
+                        album = [m for m in surrounding if m and m.media and m.grouped_id == target_msg.grouped_id]
+                        if len(album) > 1:
+                            album.sort(key=lambda m: m.id)
+                            msgs_to_inspect = album
+                    except Exception as ge:
+                        logger.debug("Album fetch error: %s", ge)
 
-                discovered.append({
-                    "messageId": msg_id,
-                    "topicId": topic_id,
-                    "title": item["title"],
-                    "type": item["type"],
-                    "subjectId": subject_id,
-                    "subjectName": subject_info.get("name") or f"Topic {topic_id}",
-                    "originalFileName": file_name,
-                    "fileSize": file_size,
-                    "alreadyUploaded": already_uploaded,
-                    "selected": not already_uploaded
-                })
+                for single_msg in msgs_to_inspect:
+                    file_name = getattr(single_msg.file, 'name', None) or f"{item['title']}.pdf"
+                    file_size = getattr(single_msg.file, 'size', 0)
+                    subject_id = api_client.resolve_subject_id(topic_id, subject_info.get("name"))
+
+                    item_title = item["title"]
+                    if len(msgs_to_inspect) > 1:
+                        import re
+                        m_num = re.search(r'(?:lec|sec|ch|محاضرة|سكشن)\s*0*(\d+)', file_name, re.IGNORECASE)
+                        if m_num:
+                            prefix = "Sec" if item["type"] == "Section" else "Lec"
+                            num_str = f"{int(m_num.group(1)):02d}"
+                            tag = ""
+                            tag_m = re.search(r'\(طالب \d+\)', item["title"])
+                            if tag_m:
+                                tag = f" {tag_m.group(0)}"
+                            item_title = f"{prefix} {num_str}{tag}"
+
+                    already_uploaded = api_client.is_material_already_on_platform(subject_id, item_title, item["type"])
+
+                    discovered.append({
+                        "messageId": single_msg.id,
+                        "topicId": topic_id,
+                        "title": item_title,
+                        "type": item["type"],
+                        "subjectId": subject_id,
+                        "subjectName": subject_info.get("name") or f"Topic {topic_id}",
+                        "originalFileName": file_name,
+                        "fileSize": file_size,
+                        "alreadyUploaded": already_uploaded,
+                        "selected": not already_uploaded
+                    })
             except Exception as e:
                 logger.warning("Error fetching target message %s: %s", msg_id, e)
 

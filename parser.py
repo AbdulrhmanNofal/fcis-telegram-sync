@@ -75,11 +75,15 @@ def parse_overview_message(text: str, entities: list = None) -> List[Dict[str, A
             # Strictly skip any block that is NOT Lectures or Sections (e.g. HTML, Recordings, Books)
             continue
             
+        # Check if block header specifies a student source (e.g. 'Lectures from student 1' or 'طالب 1')
+        student_match = re.search(r'(?:student|طالب)\s*(\d+)', header)
+        student_tag = f"(طالب {student_match.group(1)})" if student_match else None
+
         md_matches = re.finditer(r'\[([^\]]+)\]\((https?://t\.me/[^\)]+)\)', block)
         for m in md_matches:
             raw_label = m.group(1)
             url = m.group(2)
-            parsed_item = _process_block_link(raw_label, url, target_type)
+            parsed_item = _process_block_link(raw_label, url, target_type, student_tag)
             if parsed_item:
                 items.append(parsed_item)
 
@@ -99,26 +103,32 @@ def parse_overview_message(text: str, entities: list = None) -> List[Dict[str, A
 
     return items
 
-def _process_block_link(raw_label: str, url: str, expected_type: str) -> Optional[Dict[str, Any]]:
+def _process_block_link(raw_label: str, url: str, expected_type: str, student_tag: Optional[str] = None) -> Optional[Dict[str, Any]]:
     clean_label = re.sub(r'[*_~`\s]', '', normalize_text(raw_label)).upper()
     
     if expected_type == "Lecture":
         lec_match = re.match(r'^(?:L(?:EC)?|CH)0*(\d+)$', clean_label)
         if lec_match:
             num = int(lec_match.group(1))
-            title = f"Lec {num:02d}"
+            base_title = f"Lec {num:02d}"
+        elif clean_label == "ALL":
+            base_title = "Lec 01"
         else:
-            title = normalize_text(raw_label).strip()
+            base_title = normalize_text(raw_label).strip()
+
+        title = f"{base_title} {student_tag}" if student_tag else base_title
         item_type = "Lecture"
     elif expected_type == "Section":
         sec_match = re.match(r'^(?:S(?:EC)?|LAB)0*(\d+)$', clean_label)
         if sec_match:
             num = int(sec_match.group(1))
-            title = f"Sec {num:02d}"
+            base_title = f"Sec {num:02d}"
         elif "ALL" in clean_label and ("LAP" in clean_label or "LAB" in clean_label or "SEC" in clean_label):
-            title = "Sec 01"
+            base_title = "Sec 01"
         else:
-            title = normalize_text(raw_label).strip()
+            base_title = normalize_text(raw_label).strip()
+
+        title = f"{base_title} {student_tag}" if student_tag else base_title
         item_type = "Section"
     else:
         return None

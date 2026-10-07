@@ -26,9 +26,9 @@ TG_PHONE = os.getenv("TG_PHONE")
 TG_COMMUNITY = os.getenv("TG_COMMUNITY") or "FCISCommunity29"
 
 FCIS_API_BASE = os.getenv("FCIS_API_BASE") or "http://fcishub.runasp.net/api"
-FCIS_ADMIN_EMAIL = os.getenv("FCIS_ADMIN_EMAIL") or "Nofal@std.mans.edu.eg"
-FCIS_ADMIN_PASSWORD = os.getenv("FCIS_ADMIN_PASSWORD") or "Abdulrhman@2026"
-ADMIN_PERSONAL_TARGET = os.getenv("ADMIN_PERSONAL_TARGET") or "+201027545916"
+FCIS_ADMIN_EMAIL = os.getenv("FCIS_ADMIN_EMAIL", "")
+FCIS_ADMIN_PASSWORD = os.getenv("FCIS_ADMIN_PASSWORD", "")
+ADMIN_PERSONAL_TARGET = os.getenv("ADMIN_PERSONAL_TARGET", "")
 
 TEMP_DIR = os.path.join(os.path.dirname(__file__), "downloads_temp")
 os.makedirs(TEMP_DIR, exist_ok=True)
@@ -217,8 +217,16 @@ async def main():
 
     init_db()
 
+    if not FCIS_ADMIN_EMAIL or not FCIS_ADMIN_PASSWORD:
+        logger.critical("FCIS_ADMIN_EMAIL and FCIS_ADMIN_PASSWORD must be set in environment.")
+        print(json.dumps({"error": "Missing FCIS admin credentials"}))
+        sys.exit(1)
+
     api_client = FcisApiClient(FCIS_API_BASE, FCIS_ADMIN_EMAIL, FCIS_ADMIN_PASSWORD)
-    api_client.login()
+    if not api_client.login():
+        logger.critical("Authentication with FCIS Hub API failed. Aborting.")
+        print(json.dumps({"error": "FCIS API authentication failed"}))
+        sys.exit(1)
 
     TG_SESSION_STRING = os.getenv("TG_SESSION_STRING")
     if TG_SESSION_STRING:

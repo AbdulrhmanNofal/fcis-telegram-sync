@@ -7,8 +7,6 @@ on:
         description: 'JSON array of approved items to sync'
         required: false
         default: ''
-  schedule:
-    - cron: '0 19 * * *'
 
 jobs:
   sync:

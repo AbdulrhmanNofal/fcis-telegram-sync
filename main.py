@@ -381,9 +381,11 @@ async def main():
             logger.error("Provided TG_SESSION_STRING is unauthorized or expired.")
             sys.exit(1)
         logger.info("Telegram Userbot authenticated via TG_SESSION_STRING!")
-    else:
         client = TelegramClient("userbot_session", int(TG_API_ID), TG_API_HASH)
-        await client.start(phone=TG_PHONE)
+        await client.connect()
+        if not await client.is_user_authorized():
+            logger.warning("Userbot session unauthorized, starting auth...")
+            client.start(phone=TG_PHONE)  # type: ignore
         logger.info("Telegram Userbot logged in successfully!")
 
     community_entity = await client.get_entity(TG_COMMUNITY)

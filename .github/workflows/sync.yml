@@ -37,6 +37,7 @@ jobs:
           FCIS_ADMIN_EMAIL: ${{ secrets.FCIS_ADMIN_EMAIL }}
           FCIS_ADMIN_PASSWORD: ${{ secrets.FCIS_ADMIN_PASSWORD }}
           ADMIN_PERSONAL_TARGET: ${{ secrets.ADMIN_PERSONAL_TARGET }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           APPROVED_ITEMS: ${{ inputs.approved_items }}
         run: |
           if [ -n "$APPROVED_ITEMS" ]; then

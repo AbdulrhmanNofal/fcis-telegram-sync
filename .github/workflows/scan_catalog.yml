@@ -35,6 +35,7 @@ jobs:
           FCIS_API_BASE: ${{ secrets.FCIS_API_BASE }}
           FCIS_ADMIN_EMAIL: ${{ secrets.FCIS_ADMIN_EMAIL }}
           FCIS_ADMIN_PASSWORD: ${{ secrets.FCIS_ADMIN_PASSWORD }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           python main.py --scan-only
 

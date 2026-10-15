@@ -127,11 +127,15 @@ def _process_block_link(raw_label: str, url: str, expected_type: str, student_ta
     if expected_type == "Lecture":
         lec_match = re.match(r'^(?:L(?:EC)?|CH)0*(\d+)$', clean_label)
         ar_lec = re.search(r'(?:محاضرة|محاضره)\s*0*(\d+)', norm)
+        week_match = re.search(r'(?:week|wk|w|اسبوع|الاسبوع|الأسبوع)\s*0*(\d+)', norm, re.IGNORECASE)
         if lec_match:
             num = int(lec_match.group(1))
             base_title = f"Lec {num:02d}"
         elif ar_lec:
             num = int(ar_lec.group(1))
+            base_title = f"Lec {num:02d}"
+        elif week_match:
+            num = int(week_match.group(1))
             base_title = f"Lec {num:02d}"
         elif clean_label == "ALL":
             base_title = "Lec 01"
@@ -143,11 +147,15 @@ def _process_block_link(raw_label: str, url: str, expected_type: str, student_ta
     elif expected_type == "Section":
         sec_match = re.match(r'^(?:S(?:EC)?|LAB|LAP)0*(\d+)$', clean_label)
         ar_sec = re.search(r'(?:سكشن|سيكشن|لاب)\s*0*(\d+)', norm)
+        week_match = re.search(r'(?:week|wk|w|اسبوع|الاسبوع|الأسبوع)\s*0*(\d+)', norm, re.IGNORECASE)
         if sec_match:
             num = int(sec_match.group(1))
             base_title = f"Sec {num:02d}"
         elif ar_sec:
             num = int(ar_sec.group(1))
+            base_title = f"Sec {num:02d}"
+        elif week_match:
+            num = int(week_match.group(1))
             base_title = f"Sec {num:02d}"
         elif "ALL" in clean_label and ("LAP" in clean_label or "LAB" in clean_label or "SEC" in clean_label):
             base_title = "Sec 01"

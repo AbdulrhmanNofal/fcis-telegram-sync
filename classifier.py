@@ -115,11 +115,23 @@ def extract_contributor_tag(text: str) -> str:
 
     return ""
 
+def strip_academic_years(text: str) -> str:
+    """Removes 4-digit academic years like 2026-2027, 2025/2026, 2026, 2025 so they don't get confused with lecture or section numbers."""
+    if not text:
+        return ""
+    # Strip ranges like 2026-2027, 2025/2026, 2024_2025 or standalone years 2020-2035
+    text = re.sub(r'\b(20[2-3]\d)\s*[-_/]\s*(?:20)?[2-3]\d\b', ' ', text)
+    text = re.sub(r'\b20[2-3]\d\b', ' ', text)
+    return text
+
 def rule_classify(file_name: str, message_text: str = "", topic_id: str = "", config_topics: dict = None, expected_type: Optional[str] = None) -> Dict[str, Any]:
     """
     High-precision rule-based classifier:
     - Enforces .pdf, .pptx, .ppt
     - Enforces Lecture or Section ONLY
+    - Prioritizes filename numbers over generic message captions
+    - Recognizes weeks (e.g. week 1, week 2, week 3)
+    - Strips academic years to avoid false number matches
     - Standardizes title to 'Lec 01', 'Sec 02', etc.
     """
     base_name, ext = os.path.splitext(file_name)
@@ -151,8 +163,12 @@ def rule_classify(file_name: str, message_text: str = "", topic_id: str = "", co
             "confidence": "rule_reject"
         }
 
-    # Identify Type and Number
-    norm = normalize_arabic_text(combined)
+    # Clean text from academic years (e.g. 2026-2027) so they are not mistaken for lec/sec numbers
+    clean_fn = strip_academic_years(base_name)
+    fn_norm = normalize_arabic_text(clean_fn)
+
+    clean_combined = strip_academic_years(combined)
+    norm = normalize_arabic_text(clean_combined)
 
     # Patterns for Lectures
     lec_pattern = re.compile(
@@ -164,43 +180,66 @@ def rule_classify(file_name: str, message_text: str = "", topic_id: str = "", co
         r'(?:sec(?:tion)?|lab|lap|سكشن|سيكشن|لاب|معمل)\s*[-_.]?\s*0*(\d+)',
         re.IGNORECASE
     )
-
-    lec_m = lec_pattern.search(norm)
-    sec_m = sec_pattern.search(norm)
+    # Patterns for Weeks
+    week_pattern = re.compile(
+        r'(?:week|wk|w|اسبوع|الاسبوع|الأسبوع)\s*[-_.]?\s*0*(\d+)',
+        re.IGNORECASE
+    )
 
     item_type = None
     item_num = None
 
-    if lec_m and not sec_m:
+    # PRIORITY 1: Check filename itself first! (The filename is the ground truth asset)
+    fn_lec = lec_pattern.search(fn_norm)
+    fn_sec = sec_pattern.search(fn_norm)
+    fn_week = week_pattern.search(fn_norm)
+
+    if fn_lec and not fn_sec:
         item_type = "Lecture"
-        item_num = int(lec_m.group(1))
-    elif sec_m and not lec_m:
+        item_num = int(fn_lec.group(1))
+    elif fn_sec and not fn_lec:
         item_type = "Section"
-        item_num = int(sec_m.group(1))
-    elif lec_m and sec_m:
-        fn_norm = normalize_arabic_text(base_name)
-        if lec_pattern.search(fn_norm):
+        item_num = int(fn_sec.group(1))
+    elif fn_week:
+        # If filename explicitly specifies a week (e.g. 'week 1', 'week 2', 'week 3')
+        # In university courses, weekly practical slides default to Section unless expected_type is Lecture
+        item_type = expected_type or ("Lecture" if fn_lec else "Section")
+        item_num = int(fn_week.group(1))
+    elif fn_lec and fn_sec:
+        item_type = "Lecture"
+        item_num = int(fn_lec.group(1))
+    else:
+        # Check if filename has numeric suffix e.g. "Web Programming _01" or "DSA _02"
+        fn_num_suffix = re.search(r'(?:^|[_\-\s])0*(\d{1,2})(?:$|[_\-\s])', fn_norm)
+        if fn_num_suffix and expected_type in ("Lecture", "Section"):
+            item_type = expected_type
+            item_num = int(fn_num_suffix.group(1))
+        elif fn_num_suffix and any(w in fn_norm for w in ['محاضره', 'محاضرة', 'lecture', 'slides']):
             item_type = "Lecture"
-            item_num = int(lec_pattern.search(fn_norm).group(1))
-        elif sec_pattern.search(fn_norm):
+            item_num = int(fn_num_suffix.group(1))
+        elif fn_num_suffix and any(w in fn_norm for w in ['سكشن', 'سيكشن', 'section', 'lab', 'معمل']):
             item_type = "Section"
-            item_num = int(sec_pattern.search(fn_norm).group(1))
-        else:
+            item_num = int(fn_num_suffix.group(1))
+
+    # PRIORITY 2: If filename had no number, search combined message/overview text
+    if item_num is None:
+        lec_m = lec_pattern.search(norm)
+        sec_m = sec_pattern.search(norm)
+        week_m = week_pattern.search(norm)
+
+        if lec_m and not sec_m:
             item_type = "Lecture"
             item_num = int(lec_m.group(1))
-    else:
-        # Check underscore/hyphen numbering e.g. "Web Programming _01" or "DSA _02"
-        num_suffix = re.search(r'[_\-\s]0*(\d+)(?:\.|$)', base_name)
-        if expected_type in ("Lecture", "Section") and num_suffix:
-            item_type = expected_type
-            item_num = int(num_suffix.group(1))
+        elif sec_m and not lec_m:
+            item_type = "Section"
+            item_num = int(sec_m.group(1))
+        elif week_m:
+            item_type = expected_type or ("Lecture" if lec_m else "Section")
+            item_num = int(week_m.group(1))
         elif expected_type in ("Lecture", "Section"):
             item_type = expected_type
-            item_num = 1
-        elif num_suffix:
-            # If no sec/lab keywords exist, default numeric slide sequence to Lecture
-            item_type = "Lecture"
-            item_num = int(num_suffix.group(1))
+            fn_num = re.search(r'(?:^|[_\-\s])0*(\d{1,2})(?:$|[_\-\s])', fn_norm)
+            item_num = int(fn_num.group(1)) if fn_num else 1
         elif any(w in norm for w in ['محاضره', 'محاضرة', 'lecture', 'slides']):
             item_type = "Lecture"
             item_num = 1

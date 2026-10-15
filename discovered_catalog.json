@@ -386,7 +386,7 @@
   {
     "messageId": 762,
     "topicId": "21",
-    "title": "Sec 01",
+    "title": "Sec 02",
     "type": "Section",
     "subjectId": 3,
     "subjectName": "Operating Systems",
@@ -398,7 +398,7 @@
   {
     "messageId": 763,
     "topicId": "21",
-    "title": "Sec 01",
+    "title": "Sec 03",
     "type": "Section",
     "subjectId": 3,
     "subjectName": "Operating Systems",

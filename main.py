@@ -297,6 +297,7 @@ async def sync_approved_items(client: TelegramClient, api_client: FcisApiClient,
             ext = os.path.splitext(original_filename)[1].lower()
             if ext not in ['.pdf', '.docx', '.pptx', '.xlsx', '.png', '.jpg', '.jpeg', '.zip']:
                 logger.warning("Skipping '%s' (%s) - unsupported extension '%s'.", title, original_filename, ext)
+                failed.append({"messageId": msg_id, "error": f"Unsupported file type '{ext}'"})
                 continue
 
             temp_file_path = os.path.join(TEMP_DIR, f"{msg_id}_{original_filename}")
@@ -381,11 +382,12 @@ async def main():
             logger.error("Provided TG_SESSION_STRING is unauthorized or expired.")
             sys.exit(1)
         logger.info("Telegram Userbot authenticated via TG_SESSION_STRING!")
+    else:
         client = TelegramClient("userbot_session", int(TG_API_ID), TG_API_HASH)
         await client.connect()
         if not await client.is_user_authorized():
             logger.warning("Userbot session unauthorized, starting auth...")
-            client.start(phone=TG_PHONE)  # type: ignore
+            await client.start(phone=TG_PHONE)  # type: ignore
         logger.info("Telegram Userbot logged in successfully!")
 
     community_entity = await client.get_entity(TG_COMMUNITY)

@@ -1,7 +1,7 @@
 name: Sync Telegram Videos to Google Drive
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: {}
   schedule:
     - cron: '0 0 * * 0'
 

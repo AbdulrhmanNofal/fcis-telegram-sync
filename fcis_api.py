@@ -85,14 +85,21 @@ class FcisApiClient:
             
         existing = set()
         try:
-            url = f"{self.base_url}/materials?subjectId={subject_id}&pageSize=200"
-            resp = requests.get(url, timeout=10)
-            if resp.status_code == 200:
-                items = resp.json().get("data", {}).get("items", [])
+            page = 1
+            while page <= 50:
+                url = f"{self.base_url}/materials?subjectId={subject_id}&page={page}&pageSize=50"
+                resp = requests.get(url, timeout=15)
+                if resp.status_code != 200:
+                    break
+                data = resp.json().get("data", {})
+                items = data.get("items", [])
                 for item in items:
                     title = item.get("title", "").strip().lower()
                     m_type = item.get("type", "").strip().lower()
                     existing.add((title, m_type))
+                if page >= int(data.get("totalPages", 1) or 1) or not items:
+                    break
+                page += 1
             self._existing_materials_cache[subject_id] = existing
         except Exception as e:
             logger.warning("Could not fetch existing materials for subject %s: %s", subject_id, e)
@@ -131,7 +138,7 @@ class FcisApiClient:
 
             headers = self._get_headers()
             try:
-                resp = requests.post(url, headers=headers, data=data, files=files, timeout=60)
+                resp = requests.post(url, headers=headers, data=data, files=files, timeout=300)
                 
                 # If token expired, try to re-login once
                 if resp.status_code == 401:
@@ -139,7 +146,7 @@ class FcisApiClient:
                     if self.login():
                         headers = self._get_headers()
                         f.seek(0)
-                        resp = requests.post(url, headers=headers, data=data, files=files, timeout=60)
+                        resp = requests.post(url, headers=headers, data=data, files=files, timeout=300)
 
                 if resp.status_code in [200, 201]:
                     logger.info("Uploaded successfully: %s -> %s", title, file_name)

@@ -175,66 +175,79 @@ async def scan_overview_items(client: TelegramClient, api_client: FcisApiClient,
                 "selected": not already_uploaded
             })
 
-    # 5. Direct topic media scanner: Deep scan across all configured topics
-    for tid in topic_ids:
-        subject_id = api_client.resolve_subject_id(str(tid))
-        sub_info = api_client.config.get("topics", {}).get(str(tid), {})
-        subject_name = sub_info.get("englishName") or sub_info.get("subjectName") or f"Topic {tid}"
+    # 5. Direct community & topic media scanner: Deep scan across all recent messages and topics
+    allowed_exts = ['.pdf', '.docx', '.pptx', '.xlsx', '.png', '.jpg', '.jpeg', '.zip', '.html']
+    
+    # Scan recent messages across the whole community (all topics)
+    try:
+        async for msg in client.iter_messages(community_entity, limit=400):
+            if not msg.media or not getattr(msg, 'file', None):
+                continue
+            file_name = getattr(msg.file, 'name', '') or ''
+            file_ext = os.path.splitext(file_name)[1].lower()
+            if file_ext not in allowed_exts:
+                continue
 
-        try:
-            # Increased limit from 20 to 250 to ensure full topic history is scanned
-            async for msg in client.iter_messages(community_entity, reply_to=tid, limit=250):
-                if not msg.media or not getattr(msg, 'file', None):
-                    continue
-                file_name = getattr(msg.file, 'name', '') or ''
-                file_ext = os.path.splitext(file_name)[1].lower()
-                if file_ext not in ['.pdf', '.docx', '.pptx', '.xlsx', '.png', '.jpg', '.jpeg', '.zip']:
-                    continue
+            if any(it["messageId"] == msg.id for it in discovered):
+                continue
 
-                # Check if this msg.id was already discovered
-                if any(it["messageId"] == msg.id for it in discovered):
-                    continue
+            reply_to = getattr(msg, 'reply_to', None)
+            tid_found = getattr(reply_to, 'reply_to_top_id', None) or getattr(reply_to, 'reply_to_msg_id', None)
+            tid_str = str(tid_found) if tid_found else ""
 
-                combined_name = f"{file_name} {msg.text or ''}"
-                import re
+            subject_id = api_client.resolve_subject_id(tid_str)
+            sub_info = api_client.config.get("topics", {}).get(tid_str, {})
+            subject_name = sub_info.get("englishName") or sub_info.get("subjectName") or (f"Topic {tid_str}" if tid_str else "عام")
 
-                # STRICT EXCLUSION: Skip assignments, homework, and tasks as requested
-                if re.search(r'(?:assignment|task|homework|واجب|تكليف|شيت|sheet)\b', combined_name, re.IGNORECASE):
-                    continue
+            combined_name = f"{file_name} {msg.text or ''}"
+            import re
 
-                # STRICT INCLUSION: Lectures & Sections only
-                m_num = re.search(r'(?:lec(?:ture)?|ch(?:apter)?|محاضر[ةه]|شابتر|فصل)\s*[-_.]?\s*0*(\d+)', combined_name, re.IGNORECASE)
-                s_num = re.search(r'(?:sec(?:tion)?|lab|lap|سكشن|سيكشن|لاب|معمل)\s*[-_.]?\s*0*(\d+)', combined_name, re.IGNORECASE)
+            # Skip assignments/homework
+            if re.search(r'(?:assignment|homework|واجب|تكليف)\b', combined_name, re.IGNORECASE):
+                continue
 
-                inferred_type = None
-                inferred_title = None
-                if m_num:
-                    inferred_type = "Lecture"
-                    inferred_title = f"Lec {int(m_num.group(1)):02d}"
-                elif s_num:
-                    inferred_type = "Section"
-                    inferred_title = f"Sec {int(s_num.group(1)):02d}"
+            # Classify type & title
+            m_num = re.search(r'(?:lec(?:ture)?|ch(?:apter)?|محاضر[ةه]|شابتر|فصل)\s*[-_.]?\s*0*(\d+)', combined_name, re.IGNORECASE)
+            s_num = re.search(r'(?:sec(?:tion)?|lab|lap|سكشن|سيكشن|لاب|معمل)\s*[-_.]?\s*0*(\d+)', combined_name, re.IGNORECASE)
+            sum_m = re.search(r'(?:summary|ملخص|cheatsheet|مراجعة|تلخيص)', combined_name, re.IGNORECASE)
+            exam_m = re.search(r'(?:exam|امتحان|فاينل|ميد|mid|final|quiz)', combined_name, re.IGNORECASE)
 
-                if inferred_type and inferred_title:
-                    stu_m = re.search(r'(?:student|طالب)\s*0*(\d+)', combined_name, re.IGNORECASE)
-                    if stu_m:
-                        inferred_title += f" (طالب {stu_m.group(1)})"
+            inferred_type = "Lecture"
+            clean_title = os.path.splitext(file_name)[0].strip()
 
-                    already_up = api_client.is_material_already_on_platform(subject_id, inferred_title, inferred_type)
-                    discovered.append({
-                        "messageId": msg.id,
-                        "topicId": str(tid),
-                        "title": inferred_title,
-                        "type": inferred_type,
-                        "subjectId": subject_id,
-                        "subjectName": subject_name,
-                        "originalFileName": file_name,
-                        "fileSize": getattr(msg.file, 'size', 0),
-                        "alreadyUploaded": already_up,
-                        "selected": not already_up
-                    })
-        except Exception as te:
-            logger.debug("Direct topic scan for %s: %s", tid, te)
+            if m_num:
+                inferred_type = "Lecture"
+                clean_title = f"Lec {int(m_num.group(1)):02d}"
+            elif s_num:
+                inferred_type = "Section"
+                clean_title = f"Sec {int(s_num.group(1)):02d}"
+            elif sum_m:
+                inferred_type = "Summary"
+            elif exam_m:
+                inferred_type = "Exam"
+            else:
+                inferred_type = "Summary"
+
+            stu_m = re.search(r'(?:student|طالب)\s*0*(\d+)', combined_name, re.IGNORECASE)
+            if stu_m and inferred_type in ("Lecture", "Section"):
+                clean_title += f" (طالب {stu_m.group(1)})"
+
+            already_up = api_client.is_material_already_on_platform(subject_id, clean_title, inferred_type) if subject_id else False
+
+            discovered.append({
+                "messageId": msg.id,
+                "topicId": tid_str,
+                "title": clean_title,
+                "type": inferred_type,
+                "subjectId": subject_id,
+                "subjectName": subject_name,
+                "originalFileName": file_name,
+                "fileSize": getattr(msg.file, 'size', 0),
+                "alreadyUploaded": already_up,
+                "selected": not already_up
+            })
+    except Exception as ce:
+        logger.warning("Community media scan error: %s", ce)
 
     # Deduplicate by messageId
     unique_discovered = []

@@ -1,0 +1,46 @@
+name: Scan and Update Telegram Discovered Catalog
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: '0 */6 * * *'
+
+jobs:
+  scan:
+    name: Scan Telegram Catalog
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run Telegram Scan
+        env:
+          TG_API_ID: ${{ secrets.TG_API_ID }}
+          TG_API_HASH: ${{ secrets.TG_API_HASH }}
+          TG_SESSION_STRING: ${{ secrets.TG_SESSION_STRING }}
+          TG_COMMUNITY: ${{ secrets.TG_COMMUNITY }}
+          FCIS_API_BASE: ${{ secrets.FCIS_API_BASE }}
+          FCIS_ADMIN_EMAIL: ${{ secrets.FCIS_ADMIN_EMAIL }}
+          FCIS_ADMIN_PASSWORD: ${{ secrets.FCIS_ADMIN_PASSWORD }}
+        run: |
+          python main.py --scan-only
+
+      - name: Commit and Push Updated Catalog
+        run: |
+          git config --global user.name "FCIS Scan Bot"
+          git config --global user.email "bot@fcishub.local"
+          git add discovered_catalog.json full_catalog.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update discovered_catalog.json from Telegram scan" && git push)

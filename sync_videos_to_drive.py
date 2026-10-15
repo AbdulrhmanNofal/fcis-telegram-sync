@@ -144,7 +144,11 @@ async def main():
         lectures_dict = subject.get("lectures", {})
         if isinstance(lectures_dict, dict):
             for lec_key, lec in lectures_dict.items():
-                if isinstance(lec, dict) and lec.get("available") and lec.get("messageId") and not lec.get("driveFileId"):
+                if not isinstance(lec, dict):
+                    logger.warning("Skipping malformed lecture entry '%s': expected object, got %s", lec_key, type(lec).__name__)
+                    continue
+
+                if lec.get("available") and lec.get("messageId") and not lec.get("driveFileId"):
                     msg_id = lec["messageId"]
                     logger.info("Downloading %s (Message ID: %s)...", lec_key, msg_id)
                     msg = await tg_client.get_messages("me", ids=msg_id)
@@ -169,7 +173,11 @@ async def main():
         sections_dict = subject.get("sections", {})
         if isinstance(sections_dict, dict):
             for sec_key, sec in sections_dict.items():
-                if isinstance(sec, dict) and sec.get("available") and sec.get("messageId") and not sec.get("driveFileId"):
+                if not isinstance(sec, dict):
+                    logger.warning("Skipping malformed section entry '%s': expected object, got %s", sec_key, type(sec).__name__)
+                    continue
+
+                if sec.get("available") and sec.get("messageId") and not sec.get("driveFileId"):
                     msg_id = sec["messageId"]
                     logger.info("Downloading %s (Message ID: %s)...", sec_key, msg_id)
                     msg = await tg_client.get_messages("me", ids=msg_id)

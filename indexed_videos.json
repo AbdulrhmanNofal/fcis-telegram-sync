@@ -9,7 +9,9 @@
         "caption": "Dsa lec 1",
         "fileSize": 424102012,
         "durationSeconds": 3733.3,
-        "mimeType": "video/mp4"
+        "mimeType": "video/mp4",
+        "driveFileId": "1BqF6oeRnOtMj3GwozxAtwhpOQDczk-Ul",
+        "streamUrl": "https://lh3.googleusercontent.com/d/1BqF6oeRnOtMj3GwozxAtwhpOQDczk-Ul"
       },
       "Lec 02": {
         "available": false
@@ -20,7 +22,9 @@
         "caption": "Lec 03",
         "fileSize": 206978295,
         "durationSeconds": 6079.8,
-        "mimeType": "video/mp4"
+        "mimeType": "video/mp4",
+        "driveFileId": "1jwwB-srQz85VSO1tsg078_8h4Xfzz4TH",
+        "streamUrl": "https://lh3.googleusercontent.com/d/1jwwB-srQz85VSO1tsg078_8h4Xfzz4TH"
       },
       "Lec  04": {
         "available": true,
@@ -28,7 +32,9 @@
         "caption": "Lec  04",
         "fileSize": 239034560,
         "durationSeconds": 5218.624,
-        "mimeType": "video/mp4"
+        "mimeType": "video/mp4",
+        "driveFileId": "1I1TRKcdHVTWy5OYPtpZ8zovlRWZYSJdo",
+        "streamUrl": "https://lh3.googleusercontent.com/d/1I1TRKcdHVTWy5OYPtpZ8zovlRWZYSJdo"
       },
       "Lec 05": {
         "available": false
@@ -92,7 +98,9 @@
         "caption": "ARC LEC 1",
         "fileSize": 527346204,
         "durationSeconds": 2982.733,
-        "mimeType": "video/mp4"
+        "mimeType": "video/mp4",
+        "driveFileId": "1dyjpo9u-8QenQ-Whd62YrXKmrXF-AMXj",
+        "streamUrl": "https://lh3.googleusercontent.com/d/1dyjpo9u-8QenQ-Whd62YrXKmrXF-AMXj"
       },
       "Lec 2": {
         "available": false
@@ -103,7 +111,9 @@
         "caption": "Lec 03",
         "fileSize": 231537106,
         "durationSeconds": 3278.033333,
-        "mimeType": "video/mp4"
+        "mimeType": "video/mp4",
+        "driveFileId": "1YQa4aTBUtfgTAYIL4mli0wQ3nxwUh9W8",
+        "streamUrl": "https://lh3.googleusercontent.com/d/1YQa4aTBUtfgTAYIL4mli0wQ3nxwUh9W8"
       },
       "Lec  04": {
         "available": true,

@@ -1,0 +1,47 @@
+name: Sync Telegram Videos to Google Drive
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Run once a week at midnight UTC (optional periodic check)
+    - cron: '0 0 * * 0'
+
+jobs:
+  sync-videos:
+    name: Sync Videos to Drive
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          pip install telethon google-api-python-client google-auth-httplib2 google-auth-oauthlib requests
+
+      - name: Run Cloud Video Sync
+        env:
+          TG_API_ID: ${{ secrets.TG_API_ID }}
+          TG_API_HASH: ${{ secrets.TG_API_HASH }}
+          TG_SESSION_STRING: ${{ secrets.TG_SESSION_STRING }}
+          GDRIVE_CLIENT_ID: ${{ secrets.GDRIVE_CLIENT_ID }}
+          GDRIVE_CLIENT_SECRET: ${{ secrets.GDRIVE_CLIENT_SECRET }}
+          GDRIVE_REFRESH_TOKEN: ${{ secrets.GDRIVE_REFRESH_TOKEN }}
+          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
+        run: |
+          python sync_videos_to_drive.py
+
+      - name: Commit and Push Updated Catalog
+        run: |
+          git config --global user.name "FCIS Sync Bot"
+          git config --global user.email "bot@fcishub.local"
+          git add indexed_videos.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update indexed_videos with Google Drive stream URLs" && git push)

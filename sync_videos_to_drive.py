@@ -1,0 +1,181 @@
+import os
+import json
+import asyncio
+import logging
+from telethon import TelegramClient
+from telethon.sessions import StringSession
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaFileUpload
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+logger = logging.getLogger("DriveVideoSync")
+
+# Telegram Credentials
+TG_API_ID = int(os.getenv("TG_API_ID", "38638396"))
+TG_API_HASH = os.getenv("TG_API_HASH", "6d24a31f0bcde46003175e912b000f09")
+TG_SESSION_STRING = os.getenv("TG_SESSION_STRING", "")
+
+# Google Drive Credentials
+GDRIVE_CLIENT_ID = os.getenv("GDRIVE_CLIENT_ID", "")
+GDRIVE_CLIENT_SECRET = os.getenv("GDRIVE_CLIENT_SECRET", "")
+GDRIVE_REFRESH_TOKEN = os.getenv("GDRIVE_REFRESH_TOKEN", "")
+GDRIVE_FOLDER_ID = os.getenv("GDRIVE_FOLDER_ID", "1y3myf00rLLXJgq9jKCehlZWh3zkQSLaw")
+
+def get_drive_service():
+    creds = Credentials(
+        None,
+        refresh_token=GDRIVE_REFRESH_TOKEN,
+        token_uri="https://oauth2.googleapis.com/token",
+        client_id=GDRIVE_CLIENT_ID,
+        client_secret=GDRIVE_CLIENT_SECRET,
+        scopes=["https://www.googleapis.com/auth/drive.file"]
+    )
+    return build("drive", "v3", credentials=creds)
+
+def ensure_videos_folder(drive_service, parent_folder_id: str) -> str:
+    """Finds or creates a 'Videos' subfolder inside target folder"""
+    query = f"name = 'Videos' and '{parent_folder_id}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false"
+    res = drive_service.files().list(q=query, fields="files(id, name)").execute()
+    files = res.get("files", [])
+    if files:
+        return files[0]["id"]
+    
+    meta = {
+        "name": "Videos",
+        "mimeType": "application/vnd.google-apps.folder",
+        "parents": [parent_folder_id]
+    }
+    created = drive_service.files().create(body=meta, fields="id").execute()
+    logger.info("Created 'Videos' folder in Google Drive: %s", created["id"])
+    return created["id"]
+
+def upload_to_drive(drive_service, file_path: str, filename: str, folder_id: str) -> str:
+    """Uploads video file using resumable chunked upload and makes it streamable"""
+    logger.info("Uploading %s to Google Drive...", filename)
+    file_metadata = {
+        "name": filename,
+        "parents": [folder_id]
+    }
+    media = MediaFileUpload(file_path, mimetype="video/mp4", resumable=True, chunksize=10*1024*1024)
+    request = drive_service.files().create(body=file_metadata, media_body=media, fields="id")
+    
+    response = None
+    while response is None:
+        status, response = request.next_chunk()
+        if status:
+            logger.info("Upload progress: %d%%", int(status.progress() * 100))
+            
+    file_id = response.get("id")
+    logger.info("File uploaded successfully. Drive File ID: %s", file_id)
+    
+    # Set public read permissions so custom web player can stream it
+    try:
+        drive_service.permissions().create(
+            fileId=file_id,
+            body={"role": "reader", "type": "anyone"},
+            fields="id"
+        ).execute()
+        logger.info("Public permissions granted for Drive File ID: %s", file_id)
+    except Exception as e:
+        logger.warning("Could not set public permission: %s", e)
+        
+    return file_id
+
+async def main():
+    if not TG_SESSION_STRING:
+        logger.error("TG_SESSION_STRING environment variable is required!")
+        return
+
+    if not GDRIVE_REFRESH_TOKEN:
+        logger.error("GDRIVE_REFRESH_TOKEN environment variable is required!")
+        return
+
+    # Load catalog
+    catalog_path = os.path.join(os.path.dirname(__file__), "indexed_videos.json")
+    if not os.path.exists(catalog_path):
+        logger.error("indexed_videos.json not found!")
+        return
+        
+    with open(catalog_path, "r", encoding="utf-8") as f:
+        catalog = json.load(f)
+
+    drive_service = get_drive_service()
+    videos_folder_id = ensure_videos_folder(drive_service, GDRIVE_FOLDER_ID)
+
+    tg_client = TelegramClient(StringSession(TG_SESSION_STRING), TG_API_ID, TG_API_HASH)
+    await tg_client.connect()
+    
+    if not await tg_client.is_user_authorized():
+        logger.error("Telegram session is not authorized!")
+        await tg_client.disconnect()
+        return
+
+    logger.info("Connected to Telegram & Google Drive successfully!")
+
+    temp_dir = os.path.join(os.path.dirname(__file__), "downloads_temp")
+    os.makedirs(temp_dir, exist_ok=True)
+
+    updated_count = 0
+
+    for subject in catalog:
+        sub_id = subject["subjectId"]
+        sub_name = subject["subjectName"]
+        logger.info("Processing subject: %s (ID: %s)", sub_name, sub_id)
+
+        # Process lectures
+        for lec in subject.get("lectures", []):
+            if lec.get("available") and lec.get("messageId") and not lec.get("driveFileId"):
+                msg_id = lec["messageId"]
+                logger.info("Downloading Lec %s (Message ID: %s)...", lec.get("lecNumber"), msg_id)
+                msg = await tg_client.get_messages("me", ids=msg_id)
+                if not msg or not msg.media:
+                    # Try from bot
+                    msg = await tg_client.get_messages("@fcishubbot", ids=msg_id)
+                
+                if msg and msg.media:
+                    fname = f"Sub{sub_id}_Lec{lec.get('lecNumber')}_{lec.get('title', 'Lecture')}.mp4"
+                    local_path = os.path.join(temp_dir, fname)
+                    await tg_client.download_media(msg, file=local_path)
+                    
+                    drive_id = upload_to_drive(drive_service, local_path, fname, videos_folder_id)
+                    lec["driveFileId"] = drive_id
+                    lec["streamUrl"] = f"https://lh3.googleusercontent.com/d/{drive_id}"
+                    updated_count += 1
+                    
+                    if os.path.exists(local_path):
+                        os.remove(local_path)
+                else:
+                    logger.warning("Message %s has no media!", msg_id)
+
+        # Process sections
+        for sec in subject.get("sections", []):
+            if sec.get("available") and sec.get("messageId") and not sec.get("driveFileId"):
+                msg_id = sec["messageId"]
+                logger.info("Downloading Sec %s (Message ID: %s)...", sec.get("secNumber"), msg_id)
+                msg = await tg_client.get_messages("me", ids=msg_id)
+                if not msg or not msg.media:
+                    msg = await tg_client.get_messages("@fcishubbot", ids=msg_id)
+                
+                if msg and msg.media:
+                    fname = f"Sub{sub_id}_Sec{sec.get('secNumber')}_{sec.get('title', 'Section')}.mp4"
+                    local_path = os.path.join(temp_dir, fname)
+                    await tg_client.download_media(msg, file=local_path)
+                    
+                    drive_id = upload_to_drive(drive_service, local_path, fname, videos_folder_id)
+                    sec["driveFileId"] = drive_id
+                    sec["streamUrl"] = f"https://lh3.googleusercontent.com/d/{drive_id}"
+                    updated_count += 1
+                    
+                    if os.path.exists(local_path):
+                        os.remove(local_path)
+
+    # Save updated catalog
+    with open(catalog_path, "w", encoding="utf-8") as f:
+        json.dump(catalog, f, indent=2, ensure_ascii=False)
+
+    logger.info("Finished sync! Updated %d videos in catalog.", updated_count)
+    await tg_client.disconnect()
+
+if __name__ == "__main__":
+    asyncio.run(main())

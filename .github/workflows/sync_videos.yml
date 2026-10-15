@@ -25,7 +25,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          pip install telethon google-api-python-client google-auth-httplib2 google-auth-oauthlib requests
+          pip install telethon cryptg google-api-python-client google-auth-httplib2 google-auth-oauthlib requests
 
       - name: Run Cloud Video Sync
         env:

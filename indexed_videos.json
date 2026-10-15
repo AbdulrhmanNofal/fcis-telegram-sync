@@ -1,0 +1,412 @@
+[
+  {
+    "subjectId": 1,
+    "subjectName": "Data Structures & Algorithms",
+    "lectures": {
+      "Lec 01": {
+        "available": true,
+        "messageId": 20709,
+        "caption": "Dsa lec 1",
+        "fileSize": 424102012,
+        "durationSeconds": 3733.3,
+        "mimeType": "video/mp4"
+      },
+      "Lec 02": {
+        "available": false
+      },
+      "Lec 03": {
+        "available": true,
+        "messageId": 20713,
+        "caption": "Lec 03",
+        "fileSize": 206978295,
+        "durationSeconds": 6079.8,
+        "mimeType": "video/mp4"
+      },
+      "Lec  04": {
+        "available": true,
+        "messageId": 20715,
+        "caption": "Lec  04",
+        "fileSize": 239034560,
+        "durationSeconds": 5218.624,
+        "mimeType": "video/mp4"
+      },
+      "Lec 05": {
+        "available": false
+      },
+      "Lec 06": {
+        "available": false
+      },
+      "Lec 07": {
+        "available": false
+      },
+      "Lec 08": {
+        "available": false
+      },
+      "Lec 09": {
+        "available": false
+      },
+      "Lec 10": {
+        "available": false
+      }
+    },
+    "sections": {
+      "Sec 1": {
+        "available": false
+      },
+      "Sec 2": {
+        "available": false
+      },
+      "Sec 3": {
+        "available": false
+      },
+      "Sec 4": {
+        "available": false
+      },
+      "Sec 5": {
+        "available": false
+      },
+      "Sec 6": {
+        "available": false
+      },
+      "Sec 7": {
+        "available": false
+      },
+      "Sec 8": {
+        "available": false
+      },
+      "Sec 9": {
+        "available": false
+      },
+      "Sec 10": {
+        "available": false
+      }
+    }
+  },
+  {
+    "subjectId": 2,
+    "subjectName": "Computer Organization & Architecture",
+    "lectures": {
+      "Lec 01": {
+        "available": true,
+        "messageId": 20759,
+        "caption": "ARC LEC 1",
+        "fileSize": 527346204,
+        "durationSeconds": 2982.733,
+        "mimeType": "video/mp4"
+      },
+      "Lec 2": {
+        "available": false
+      },
+      "Lec 03": {
+        "available": true,
+        "messageId": 20763,
+        "caption": "Lec 03",
+        "fileSize": 231537106,
+        "durationSeconds": 3278.033333,
+        "mimeType": "video/mp4"
+      },
+      "Lec  04": {
+        "available": true,
+        "messageId": 20765,
+        "caption": "Lec  04",
+        "fileSize": 1109067088,
+        "durationSeconds": 3277.0,
+        "mimeType": "video/mp4"
+      },
+      "Lec 05": {
+        "available": false
+      },
+      "Lec 06": {
+        "available": false
+      },
+      "Lec 07": {
+        "available": false
+      },
+      "Lec 08": {
+        "available": false
+      },
+      "Lec 09": {
+        "available": false
+      },
+      "Lec 10": {
+        "available": false
+      }
+    },
+    "sections": {
+      "Sec 1": {
+        "available": false
+      },
+      "Sec 2": {
+        "available": false
+      },
+      "Sec 3": {
+        "available": false
+      },
+      "Sec 4": {
+        "available": false
+      },
+      "Sec 5": {
+        "available": false
+      },
+      "Sec 6": {
+        "available": false
+      },
+      "Sec 7": {
+        "available": false
+      },
+      "Sec 8": {
+        "available": false
+      },
+      "Sec 9": {
+        "available": false
+      },
+      "Sec 10": {
+        "available": false
+      }
+    }
+  },
+  {
+    "subjectId": 3,
+    "subjectName": "Operating Systems",
+    "lectures": {
+      "Lec 01": {
+        "available": true,
+        "messageId": 20809,
+        "caption": "OS \nLecture 01: Introduction",
+        "fileSize": 277031975,
+        "durationSeconds": 11553.0,
+        "mimeType": "video/mp4"
+      },
+      "Lec 02": {
+        "available": true,
+        "messageId": 20811,
+        "caption": "OS Lec02 Recording\n#OS\n#Recording@FcisHub29",
+        "fileSize": 380051225,
+        "durationSeconds": 5280.256,
+        "mimeType": "video/mp4"
+      },
+      "Lec 03": {
+        "available": true,
+        "messageId": 20813,
+        "caption": "Lec 3",
+        "fileSize": 264598027,
+        "durationSeconds": 3656.576,
+        "mimeType": "video/mp4"
+      },
+      "Lec  04": {
+        "available": false
+      },
+      "Lec 05": {
+        "available": false
+      },
+      "Lec 06": {
+        "available": false
+      },
+      "Lec 07": {
+        "available": false
+      },
+      "Lec 08": {
+        "available": false
+      },
+      "Lec 09": {
+        "available": false
+      },
+      "Lec 10": {
+        "available": false
+      }
+    },
+    "sections": {
+      "Sec 1": {
+        "available": false
+      },
+      "Sec 2": {
+        "available": false
+      },
+      "Sec 3": {
+        "available": false
+      },
+      "Sec 4": {
+        "available": false
+      },
+      "Sec 5": {
+        "available": false
+      },
+      "Sec 6": {
+        "available": false
+      },
+      "Sec 7": {
+        "available": false
+      },
+      "Sec 8": {
+        "available": false
+      },
+      "Sec 9": {
+        "available": false
+      },
+      "Sec 10": {
+        "available": false
+      }
+    }
+  },
+  {
+    "subjectId": 4,
+    "subjectName": "Web Development",
+    "lectures": {
+      "Lec 01": {
+        "available": true,
+        "messageId": 20858,
+        "caption": "WEB LEC 1",
+        "fileSize": 136236219,
+        "durationSeconds": 5675.666,
+        "mimeType": "video/mp4"
+      },
+      "Lec 02": {
+        "available": false
+      },
+      "Lec 03": {
+        "available": false
+      },
+      "Lec  04": {
+        "available": true,
+        "messageId": 20863,
+        "caption": "Lec 4",
+        "fileSize": 341969542,
+        "durationSeconds": 5968.896,
+        "mimeType": "video/mp4"
+      },
+      "Lec 05": {
+        "available": false
+      },
+      "Lec 06": {
+        "available": false
+      },
+      "Lec 07": {
+        "available": false
+      },
+      "Lec 08": {
+        "available": false
+      },
+      "Lec 09": {
+        "available": false
+      },
+      "Lec 10": {
+        "available": false
+      }
+    },
+    "sections": {
+      "Sec 1": {
+        "available": false
+      },
+      "Sec 2": {
+        "available": false
+      },
+      "Sec 3": {
+        "available": false
+      },
+      "Sec 4": {
+        "available": false
+      },
+      "Sec 5": {
+        "available": false
+      },
+      "Sec 6": {
+        "available": false
+      },
+      "Sec 7": {
+        "available": false
+      },
+      "Sec 8": {
+        "available": false
+      },
+      "Sec 9": {
+        "available": false
+      },
+      "Sec 10": {
+        "available": false
+      }
+    }
+  },
+  {
+    "subjectId": 5,
+    "subjectName": "Linear Algebra",
+    "lectures": {
+      "Lec 01": {
+        "available": true,
+        "messageId": 20907,
+        "caption": "Lec 1",
+        "fileSize": 468910104,
+        "durationSeconds": 0,
+        "mimeType": "video/mp4"
+      },
+      "Lec 02": {
+        "available": true,
+        "messageId": 20909,
+        "caption": "Lec 2 online",
+        "fileSize": 1129016599,
+        "durationSeconds": 8259.125,
+        "mimeType": "video/mp4"
+      },
+      "Lec 03": {
+        "available": true,
+        "messageId": 20911,
+        "caption": "محاضرة 3",
+        "fileSize": 480053133,
+        "durationSeconds": 6337.0,
+        "mimeType": "video/mp4"
+      },
+      "Lec  04": {
+        "available": false
+      },
+      "Lec 05": {
+        "available": false
+      },
+      "Lec 06": {
+        "available": false
+      },
+      "Lec 07": {
+        "available": false
+      },
+      "Lec 08": {
+        "available": false
+      },
+      "Lec 09": {
+        "available": false
+      },
+      "Lec 10": {
+        "available": false
+      }
+    },
+    "sections": {
+      "Sec 1": {
+        "available": false
+      },
+      "Sec 2": {
+        "available": false
+      },
+      "Sec 3": {
+        "available": false
+      },
+      "Sec 4": {
+        "available": false
+      },
+      "Sec 5": {
+        "available": false
+      },
+      "Sec 6": {
+        "available": false
+      },
+      "Sec 7": {
+        "available": false
+      },
+      "Sec 8": {
+        "available": false
+      },
+      "Sec 9": {
+        "available": false
+      },
+      "Sec 10": {
+        "available": false
+      }
+    }
+  }
+]

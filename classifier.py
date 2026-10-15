@@ -5,6 +5,12 @@ import logging
 import unicodedata
 from typing import Optional, Dict, Any, Tuple
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except Exception:
+    pass
+
 logger = logging.getLogger("MaterialClassifier")
 
 # ONLY allowed extensions: PDF and PowerPoint
@@ -338,26 +344,36 @@ Return ONLY a valid JSON object matching this schema with no markdown code block
 }}
 """
 
-        try:
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={self.api_key}"
-            headers = {"Content-Type": "application/json"}
-            payload = {
-                "contents": [{"parts": [{"text": prompt}]}],
-                "generationConfig": {
-                    "temperature": 0.1,
-                    "responseMimeType": "application/json"
+        models_to_try = ["gemini-3.8-flash", "gemini-flash-latest"]
+        for model_name in models_to_try:
+            try:
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={self.api_key}"
+                headers = {"Content-Type": "application/json"}
+                payload = {
+                    "contents": [{"parts": [{"text": prompt}]}],
+                    "generationConfig": {
+                        "temperature": 0.1,
+                        "responseMimeType": "application/json"
+                    }
                 }
-            }
-            resp = requests.post(url, headers=headers, json=payload, timeout=10)
-            if resp.status_code == 200:
-                data = resp.json()
-                raw_text = data['candidates'][0]['content']['parts'][0]['text']
-                res_obj = json.loads(raw_text)
-                return res_obj
-            else:
-                logger.warning("Gemini AI API returned status %s: %s", resp.status_code, resp.text)
-        except Exception as e:
-            logger.warning("Gemini AI Agent classification failed or timed out: %s", e)
+                resp = requests.post(url, headers=headers, json=payload, timeout=12)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    candidates = data.get('candidates', [])
+                    if candidates and 'content' in candidates[0]:
+                        parts = candidates[0]['content'].get('parts', [])
+                        if parts:
+                            raw_text = parts[0].get('text', '').strip()
+                            # Clean potential markdown wrapping
+                            if raw_text.startswith("```"):
+                                raw_text = re.sub(r'^```(?:json)?\s*', '', raw_text)
+                                raw_text = re.sub(r'\s*```$', '', raw_text)
+                            res_obj = json.loads(raw_text)
+                            return res_obj
+                else:
+                    logger.warning("Gemini AI API model %s returned status %s: %s", model_name, resp.status_code, resp.text[:200])
+            except Exception as e:
+                logger.warning("Gemini AI Agent (%s) call error: %s", model_name, e)
 
         return None
 

@@ -206,7 +206,7 @@
   {
     "messageId": 433,
     "topicId": "19",
-    "title": "Sec 03",
+    "title": "Sec 09",
     "type": "Section",
     "subjectId": 5,
     "subjectName": "Linear Algebra",
@@ -218,7 +218,7 @@
   {
     "messageId": 434,
     "topicId": "19",
-    "title": "Sec 03",
+    "title": "Sec 08",
     "type": "Section",
     "subjectId": 5,
     "subjectName": "Linear Algebra",
@@ -230,7 +230,7 @@
   {
     "messageId": 435,
     "topicId": "19",
-    "title": "Sec 03",
+    "title": "Sec 07",
     "type": "Section",
     "subjectId": 5,
     "subjectName": "Linear Algebra",
@@ -242,7 +242,7 @@
   {
     "messageId": 436,
     "topicId": "19",
-    "title": "Sec 03",
+    "title": "Sec 06",
     "type": "Section",
     "subjectId": 5,
     "subjectName": "Linear Algebra",
@@ -254,7 +254,7 @@
   {
     "messageId": 437,
     "topicId": "19",
-    "title": "Sec 03",
+    "title": "Sec 05",
     "type": "Section",
     "subjectId": 5,
     "subjectName": "Linear Algebra",
@@ -266,7 +266,7 @@
   {
     "messageId": 438,
     "topicId": "19",
-    "title": "Sec 03",
+    "title": "Sec 04",
     "type": "Section",
     "subjectId": 5,
     "subjectName": "Linear Algebra",
@@ -494,7 +494,7 @@
   {
     "messageId": 704,
     "topicId": "17",
-    "title": "ALL",
+    "title": "Sec 08",
     "type": "Section",
     "subjectId": 4,
     "subjectName": "Web Development",
@@ -506,7 +506,7 @@
   {
     "messageId": 705,
     "topicId": "17",
-    "title": "ALL",
+    "title": "Sec 07",
     "type": "Section",
     "subjectId": 4,
     "subjectName": "Web Development",
@@ -518,7 +518,7 @@
   {
     "messageId": 706,
     "topicId": "17",
-    "title": "ALL",
+    "title": "Sec 06",
     "type": "Section",
     "subjectId": 4,
     "subjectName": "Web Development",
@@ -530,7 +530,7 @@
   {
     "messageId": 707,
     "topicId": "17",
-    "title": "ALL",
+    "title": "Sec 05",
     "type": "Section",
     "subjectId": 4,
     "subjectName": "Web Development",
@@ -542,7 +542,7 @@
   {
     "messageId": 708,
     "topicId": "17",
-    "title": "ALL",
+    "title": "Sec 04",
     "type": "Section",
     "subjectId": 4,
     "subjectName": "Web Development",
@@ -554,7 +554,7 @@
   {
     "messageId": 709,
     "topicId": "17",
-    "title": "ALL",
+    "title": "Sec 03",
     "type": "Section",
     "subjectId": 4,
     "subjectName": "Web Development",
@@ -566,7 +566,7 @@
   {
     "messageId": 710,
     "topicId": "17",
-    "title": "ALL",
+    "title": "Sec 02",
     "type": "Section",
     "subjectId": 4,
     "subjectName": "Web Development",
@@ -578,14 +578,14 @@
   {
     "messageId": 711,
     "topicId": "17",
-    "title": "ALL",
+    "title": "Sec 01",
     "type": "Section",
     "subjectId": 4,
     "subjectName": "Web Development",
     "originalFileName": "section 1.pdf",
     "fileSize": 401075,
-    "alreadyUploaded": false,
-    "selected": true
+    "alreadyUploaded": true,
+    "selected": false
   },
   {
     "messageId": 754,

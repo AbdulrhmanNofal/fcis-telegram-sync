@@ -148,17 +148,16 @@ async def scan_overview_items(client: TelegramClient, api_client: FcisApiClient,
             subject_id = api_client.resolve_subject_id(topic_id, subject_info.get("name"))
 
             item_title = item["title"]
-            if len(msgs_to_inspect) > 1:
-                import re
-                m_num = re.search(r'(?:lec|sec|ch|محاضرة|سكشن)\s*0*(\d+)', file_name, re.IGNORECASE)
-                if m_num:
-                    prefix = "Sec" if item["type"] == "Section" else "Lec"
-                    num_str = f"{int(m_num.group(1)):02d}"
-                    tag = ""
-                    tag_m = re.search(r'\(طالب \d+\)', item["title"])
-                    if tag_m:
-                        tag = f" {tag_m.group(0)}"
-                    item_title = f"{prefix} {num_str}{tag}"
+            import re
+            m_num = re.search(r'(?:lec|sec|ch|section|lecture|محاضرة|سكشن)\s*0*(\d+)', file_name, re.IGNORECASE)
+            if m_num and (len(msgs_to_inspect) > 1 or item_title.strip().upper() in ["ALL", "LINK", "HERE", "CLICK"] or not item_title.strip()):
+                prefix = "Sec" if item["type"] == "Section" else "Lec"
+                num_str = f"{int(m_num.group(1)):02d}"
+                tag = ""
+                tag_m = re.search(r'\(طالب \d+\)', item["title"])
+                if tag_m:
+                    tag = f" {tag_m.group(0)}"
+                item_title = f"{prefix} {num_str}{tag}"
 
             already_uploaded = api_client.is_material_already_on_platform(subject_id, item_title, item["type"])
 

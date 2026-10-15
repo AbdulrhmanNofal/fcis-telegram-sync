@@ -79,6 +79,7 @@ def parse_overview_message(text: str, entities: list = None) -> List[Dict[str, A
         student_match = re.search(r'(?:student|طالب)\s*(\d+)', header)
         student_tag = f"(طالب {student_match.group(1)})" if student_match else None
 
+        # Extract markdown links [label](url)
         md_matches = re.finditer(r'\[([^\]]+)\]\((https?://t\.me/[^\)]+)\)', block)
         for m in md_matches:
             raw_label = m.group(1)
@@ -94,44 +95,65 @@ def parse_overview_message(text: str, entities: list = None) -> List[Dict[str, A
             raw_label = m.group(1)
             url = m.group(2)
             clean_label = re.sub(r'[*_~`\s]', '', normalize_text(raw_label)).upper()
-            if re.match(r'^(?:L(?:EC)?|CH)0*(\d+)$', clean_label):
+            if re.match(r'^(?:L(?:EC)?|CH|محاضرة|محاضره)0*(\d+)$', clean_label):
                 parsed = _process_block_link(raw_label, url, 'Lecture')
                 if parsed: items.append(parsed)
-            elif re.match(r'^(?:S(?:EC)?|LAB)0*(\d+)$', clean_label):
+            elif re.match(r'^(?:S(?:EC)?|LAB|LAP|سكشن|سيكشن)0*(\d+)$', clean_label):
                 parsed = _process_block_link(raw_label, url, 'Section')
                 if parsed: items.append(parsed)
 
-    return items
+    # Deduplicate items by message_id while preserving order
+    unique_items = []
+    seen_ids = set()
+    for it in items:
+        mid = it.get('message_id')
+        if mid and mid not in seen_ids:
+            seen_ids.add(mid)
+            unique_items.append(it)
+
+    return unique_items
 
 def _process_block_link(raw_label: str, url: str, expected_type: str, student_tag: Optional[str] = None) -> Optional[Dict[str, Any]]:
-    clean_label = re.sub(r'[*_~`\s]', '', normalize_text(raw_label)).upper()
+    norm = normalize_text(raw_label)
+    clean_label = re.sub(r'[*_~`\s]', '', norm).upper()
     
     if expected_type == "Lecture":
         lec_match = re.match(r'^(?:L(?:EC)?|CH)0*(\d+)$', clean_label)
+        ar_lec = re.search(r'(?:محاضرة|محاضره)\s*0*(\d+)', norm)
         if lec_match:
             num = int(lec_match.group(1))
+            base_title = f"Lec {num:02d}"
+        elif ar_lec:
+            num = int(ar_lec.group(1))
             base_title = f"Lec {num:02d}"
         elif clean_label == "ALL":
             base_title = "Lec 01"
         else:
-            base_title = normalize_text(raw_label).strip()
+            base_title = re.sub(r'[*_~`]', '', norm).strip()
 
         title = f"{base_title} {student_tag}" if student_tag else base_title
         item_type = "Lecture"
     elif expected_type == "Section":
-        sec_match = re.match(r'^(?:S(?:EC)?|LAB)0*(\d+)$', clean_label)
+        sec_match = re.match(r'^(?:S(?:EC)?|LAB|LAP)0*(\d+)$', clean_label)
+        ar_sec = re.search(r'(?:سكشن|سيكشن|لاب)\s*0*(\d+)', norm)
         if sec_match:
             num = int(sec_match.group(1))
+            base_title = f"Sec {num:02d}"
+        elif ar_sec:
+            num = int(ar_sec.group(1))
             base_title = f"Sec {num:02d}"
         elif "ALL" in clean_label and ("LAP" in clean_label or "LAB" in clean_label or "SEC" in clean_label):
             base_title = "Sec 01"
         else:
-            base_title = normalize_text(raw_label).strip()
+            base_title = re.sub(r'[*_~`]', '', norm).strip()
 
         title = f"{base_title} {student_tag}" if student_tag else base_title
         item_type = "Section"
     else:
         return None
+
+    # Clean any trailing markdown symbols
+    title = re.sub(r'[*_~`]', '', title).strip()
 
     tg_info = parse_telegram_url(url)
     if not tg_info or not tg_info['message_id']:

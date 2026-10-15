@@ -5,6 +5,13 @@ import argparse
 import asyncio
 import logging
 from dotenv import load_dotenv
+
+# Ensure UTF-8 output across all environments on Windows / Linux
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
+if hasattr(sys.stderr, 'reconfigure'):
+    sys.stderr.reconfigure(encoding='utf-8')
+
 from telethon import TelegramClient, events
 from telethon.sessions import StringSession
 
@@ -69,7 +76,18 @@ async def scan_overview_items(client: TelegramClient, api_client: FcisApiClient,
     except Exception as e:
         logger.debug("Pinned messages fetch: %s", e)
 
-    # 3. Add recent messages
+    # 3. Add overview messages directly from each configured topic (guaranteed discovery)
+    topic_ids = [int(tid) for tid in api_client.config.get("topics", {}).keys() if str(tid).isdigit()]
+    for tid in topic_ids:
+        try:
+            async for msg in client.iter_messages(community_entity, reply_to=tid, limit=12):
+                if msg.id not in seen_msg_ids and msg.text and ("╭━━" in msg.text or "مجمعة" in msg.text or "Lectures" in msg.text):
+                    seen_msg_ids.add(msg.id)
+                    candidate_messages.append(msg)
+        except Exception as e:
+            logger.debug("Topic %s check: %s", tid, e)
+
+    # 4. Add recent messages
     try:
         async for msg in client.iter_messages(community_entity, limit=limit):
             if msg.id not in seen_msg_ids:
@@ -78,72 +96,173 @@ async def scan_overview_items(client: TelegramClient, api_client: FcisApiClient,
     except Exception as e:
         logger.warning("Recent messages fetch: %s", e)
 
-    # Process candidate messages
+    # Collect parsed items from candidate overview messages
+    parsed_items = []
     for msg in candidate_messages:
         text = msg.text or ""
-        items = parse_overview_message(text, msg.entities)
-        if not items and "مجمعة" not in text and "Lectures" not in text:
-            continue
+        items = parse_overview_message(text, getattr(msg, 'entities', None))
         if not items:
             continue
-
         subject_info = extract_subject_info(text)
-        chat = await msg.get_chat()
-
         for item in items:
-            topic_id = str(item["topic_id"])
-            msg_id = item["message_id"]
+            item["_subject_info"] = subject_info
+            item["_chat"] = community_entity
+            parsed_items.append(item)
 
+    # BATCH FETCH target messages in chunks of 50 to avoid flood wait
+    all_target_ids = list({it["message_id"] for it in parsed_items if it.get("message_id")})
+    msg_cache = {}
+    for i in range(0, len(all_target_ids), 50):
+        chunk = all_target_ids[i:i+50]
+        try:
+            chunk_msgs = await client.get_messages(community_entity, ids=chunk)
+            for m in chunk_msgs:
+                if m:
+                    msg_cache[m.id] = m
+        except Exception as be:
+            logger.warning("Batch fetch error for chunk %s: %s", chunk, be)
+
+    # Process items with fetched messages
+    for item in parsed_items:
+        topic_id = str(item["topic_id"])
+        msg_id = item["message_id"]
+        target_msg = msg_cache.get(msg_id)
+        if not target_msg or not target_msg.media:
+            continue
+
+        msgs_to_inspect = [target_msg]
+        if target_msg.grouped_id:
             try:
-                target_msg = await client.get_messages(chat, ids=msg_id)
-                if not target_msg or not target_msg.media:
+                surrounding = await client.get_messages(community_entity, ids=list(range(max(1, target_msg.id - 15), target_msg.id + 16)))
+                album = [m for m in surrounding if m and m.media and m.grouped_id == target_msg.grouped_id]
+                if len(album) > 1:
+                    album.sort(key=lambda m: m.id)
+                    msgs_to_inspect = album
+            except Exception as ge:
+                logger.debug("Album fetch error: %s", ge)
+
+        for single_msg in msgs_to_inspect:
+            file_name = getattr(single_msg.file, 'name', None) or f"{item['title']}.pdf"
+            file_size = getattr(single_msg.file, 'size', 0)
+            subject_info = item.get("_subject_info", {})
+            subject_id = api_client.resolve_subject_id(topic_id, subject_info.get("name"))
+
+            item_title = item["title"]
+            if len(msgs_to_inspect) > 1:
+                import re
+                m_num = re.search(r'(?:lec|sec|ch|محاضرة|سكشن)\s*0*(\d+)', file_name, re.IGNORECASE)
+                if m_num:
+                    prefix = "Sec" if item["type"] == "Section" else "Lec"
+                    num_str = f"{int(m_num.group(1)):02d}"
+                    tag = ""
+                    tag_m = re.search(r'\(طالب \d+\)', item["title"])
+                    if tag_m:
+                        tag = f" {tag_m.group(0)}"
+                    item_title = f"{prefix} {num_str}{tag}"
+
+            already_uploaded = api_client.is_material_already_on_platform(subject_id, item_title, item["type"])
+
+            discovered.append({
+                "messageId": single_msg.id,
+                "topicId": topic_id,
+                "title": item_title,
+                "type": item["type"],
+                "subjectId": subject_id,
+                "subjectName": subject_info.get("name") or f"Topic {topic_id}",
+                "originalFileName": file_name,
+                "fileSize": file_size,
+                "alreadyUploaded": already_uploaded,
+                "selected": not already_uploaded
+            })
+
+    # 5. Direct topic media scanner: Deep scan across all configured topics
+    for tid in topic_ids:
+        subject_id = api_client.resolve_subject_id(str(tid))
+        sub_info = api_client.config.get("topics", {}).get(str(tid), {})
+        subject_name = sub_info.get("englishName") or sub_info.get("subjectName") or f"Topic {tid}"
+
+        try:
+            # Increased limit from 20 to 250 to ensure full topic history is scanned
+            async for msg in client.iter_messages(community_entity, reply_to=tid, limit=250):
+                if not msg.media or not getattr(msg, 'file', None):
+                    continue
+                file_name = getattr(msg.file, 'name', '') or ''
+                file_ext = os.path.splitext(file_name)[1].lower()
+                if file_ext not in ['.pdf', '.docx', '.pptx', '.xlsx', '.png', '.jpg', '.jpeg', '.zip']:
                     continue
 
-                msgs_to_inspect = [target_msg]
-                if target_msg.grouped_id:
-                    try:
-                        surrounding = await client.get_messages(chat, ids=list(range(max(1, target_msg.id - 15), target_msg.id + 16)))
-                        album = [m for m in surrounding if m and m.media and m.grouped_id == target_msg.grouped_id]
-                        if len(album) > 1:
-                            album.sort(key=lambda m: m.id)
-                            msgs_to_inspect = album
-                    except Exception as ge:
-                        logger.debug("Album fetch error: %s", ge)
+                # Check if this msg.id was already discovered
+                if any(it["messageId"] == msg.id for it in discovered):
+                    continue
 
-                for single_msg in msgs_to_inspect:
-                    file_name = getattr(single_msg.file, 'name', None) or f"{item['title']}.pdf"
-                    file_size = getattr(single_msg.file, 'size', 0)
-                    subject_id = api_client.resolve_subject_id(topic_id, subject_info.get("name"))
+                combined_name = f"{file_name} {msg.text or ''}"
+                import re
 
-                    item_title = item["title"]
-                    if len(msgs_to_inspect) > 1:
-                        import re
-                        m_num = re.search(r'(?:lec|sec|ch|محاضرة|سكشن)\s*0*(\d+)', file_name, re.IGNORECASE)
-                        if m_num:
-                            prefix = "Sec" if item["type"] == "Section" else "Lec"
-                            num_str = f"{int(m_num.group(1)):02d}"
-                            tag = ""
-                            tag_m = re.search(r'\(طالب \d+\)', item["title"])
-                            if tag_m:
-                                tag = f" {tag_m.group(0)}"
-                            item_title = f"{prefix} {num_str}{tag}"
+                # STRICT EXCLUSION: Skip assignments, homework, and tasks as requested
+                if re.search(r'(?:assignment|task|homework|واجب|تكليف|شيت|sheet)\b', combined_name, re.IGNORECASE):
+                    continue
 
-                    already_uploaded = api_client.is_material_already_on_platform(subject_id, item_title, item["type"])
+                # STRICT INCLUSION: Lectures & Sections only
+                m_num = re.search(r'(?:lec(?:ture)?|ch(?:apter)?|محاضر[ةه]|شابتر|فصل)\s*[-_.]?\s*0*(\d+)', combined_name, re.IGNORECASE)
+                s_num = re.search(r'(?:sec(?:tion)?|lab|lap|سكشن|سيكشن|لاب|معمل)\s*[-_.]?\s*0*(\d+)', combined_name, re.IGNORECASE)
 
+                inferred_type = None
+                inferred_title = None
+                if m_num:
+                    inferred_type = "Lecture"
+                    inferred_title = f"Lec {int(m_num.group(1)):02d}"
+                elif s_num:
+                    inferred_type = "Section"
+                    inferred_title = f"Sec {int(s_num.group(1)):02d}"
+
+                if inferred_type and inferred_title:
+                    stu_m = re.search(r'(?:student|طالب)\s*0*(\d+)', combined_name, re.IGNORECASE)
+                    if stu_m:
+                        inferred_title += f" (طالب {stu_m.group(1)})"
+
+                    already_up = api_client.is_material_already_on_platform(subject_id, inferred_title, inferred_type)
                     discovered.append({
-                        "messageId": single_msg.id,
-                        "topicId": topic_id,
-                        "title": item_title,
-                        "type": item["type"],
+                        "messageId": msg.id,
+                        "topicId": str(tid),
+                        "title": inferred_title,
+                        "type": inferred_type,
                         "subjectId": subject_id,
-                        "subjectName": subject_info.get("name") or f"Topic {topic_id}",
+                        "subjectName": subject_name,
                         "originalFileName": file_name,
-                        "fileSize": file_size,
-                        "alreadyUploaded": already_uploaded,
-                        "selected": not already_uploaded
+                        "fileSize": getattr(msg.file, 'size', 0),
+                        "alreadyUploaded": already_up,
+                        "selected": not already_up
                     })
-            except Exception as e:
-                logger.warning("Error fetching target message %s: %s", msg_id, e)
+        except Exception as te:
+            logger.debug("Direct topic scan for %s: %s", tid, te)
+
+    # Deduplicate by messageId
+    unique_discovered = []
+    seen_ids = set()
+    for it in discovered:
+        if it["messageId"] not in seen_ids:
+            seen_ids.add(it["messageId"])
+            unique_discovered.append(it)
+    discovered = unique_discovered
+
+    # Cache discovered catalog locally
+    try:
+        catalog_path = os.path.join(os.path.dirname(__file__), "discovered_catalog.json")
+        with open(catalog_path, "w", encoding="utf-8") as f:
+            json.dump(discovered, f, ensure_ascii=False, indent=2)
+
+        # Also update full_catalog.json
+        full_path = os.path.join(os.path.dirname(__file__), "full_catalog.json")
+        with open(full_path, "w", encoding="utf-8") as f:
+            json.dump(discovered, f, ensure_ascii=False, indent=2)
+
+        # Also sync to backend's telegram_catalog.json if present
+        backend_catalog = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "BACK", "FcisHub.Api", "telegram_catalog.json"))
+        if os.path.exists(os.path.dirname(backend_catalog)):
+            with open(backend_catalog, "w", encoding="utf-8") as f:
+                json.dump(discovered, f, ensure_ascii=False, indent=2)
+    except Exception as se:
+        logger.debug("Catalog persistence: %s", se)
 
     return discovered
 
@@ -176,7 +295,7 @@ async def sync_approved_items(client: TelegramClient, api_client: FcisApiClient,
 
             original_filename = getattr(target_msg.file, 'name', None) or f"{title}.pdf"
             ext = os.path.splitext(original_filename)[1].lower()
-            if ext not in ['.pdf', '.docx', '.pptx', '.xlsx', '.png', '.jpg', '.jpeg', '.html', '.htm', '.zip']:
+            if ext not in ['.pdf', '.docx', '.pptx', '.xlsx', '.png', '.jpg', '.jpeg', '.zip']:
                 logger.warning("Skipping '%s' (%s) - unsupported extension '%s'.", title, original_filename, ext)
                 continue
 

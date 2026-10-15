@@ -384,6 +384,42 @@
     "selected": false
   },
   {
+    "messageId": 761,
+    "topicId": "21",
+    "title": "Sec 01",
+    "type": "Section",
+    "subjectId": 3,
+    "subjectName": "Operating Systems",
+    "originalFileName": "week 1 2026-2027.pptx",
+    "fileSize": 5392350,
+    "alreadyUploaded": false,
+    "selected": true
+  },
+  {
+    "messageId": 762,
+    "topicId": "21",
+    "title": "Sec 01",
+    "type": "Section",
+    "subjectId": 3,
+    "subjectName": "Operating Systems",
+    "originalFileName": "week 2 2026-2027.pptx",
+    "fileSize": 1576860,
+    "alreadyUploaded": false,
+    "selected": true
+  },
+  {
+    "messageId": 763,
+    "topicId": "21",
+    "title": "Sec 01",
+    "type": "Section",
+    "subjectId": 3,
+    "subjectName": "Operating Systems",
+    "originalFileName": "week 3 2026-2027.pptx",
+    "fileSize": 2844961,
+    "alreadyUploaded": false,
+    "selected": true
+  },
+  {
     "messageId": 107,
     "topicId": "14",
     "title": "Lec 01",
@@ -586,6 +622,18 @@
     "fileSize": 401075,
     "alreadyUploaded": true,
     "selected": false
+  },
+  {
+    "messageId": 764,
+    "topicId": "14",
+    "title": "Sec 03",
+    "type": "Section",
+    "subjectId": 2,
+    "subjectName": "Computer Organization & Architecture",
+    "originalFileName": "Arc & Org Esraa-Salah lab03.pdf",
+    "fileSize": 537339,
+    "alreadyUploaded": false,
+    "selected": true
   },
   {
     "messageId": 754,

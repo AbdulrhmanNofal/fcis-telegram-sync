@@ -2,10 +2,9 @@ import os
 import json
 import asyncio
 import logging
-import math
+import time
 import requests
-from telethon import TelegramClient, utils
-from telethon.tl.types import DocumentAttributeFilename
+from telethon import TelegramClient
 from telethon.sessions import StringSession
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
@@ -74,19 +73,32 @@ def upload_to_drive(drive_service, file_path: str, filename: str, folder_id: str
         "name": filename,
         "parents": [folder_id]
     }
-    # 20MB chunk size for ultra-fast Drive uploads
-    media = MediaFileUpload(file_path, mimetype="video/mp4", resumable=True, chunksize=20*1024*1024)
+    # 10MB chunk size for stability with large 1GB+ files
+    media = MediaFileUpload(file_path, mimetype="video/mp4", resumable=True, chunksize=10*1024*1024)
     request = drive_service.files().create(body=file_metadata, media_body=media, fields="id")
     
     response = None
     last_reported = 0
+    retries = 0
+    max_retries = 10
+
     while response is None:
-        status, response = request.next_chunk()
-        if status:
-            pct = int(status.progress() * 100)
-            if pct - last_reported >= 25 or pct == 100:
-                logger.info("Google Drive upload: %d%%", pct)
-                last_reported = pct
+        try:
+            status, response = request.next_chunk()
+            if status:
+                pct = int(status.progress() * 100)
+                if pct - last_reported >= 15 or pct == 100:
+                    logger.info("Google Drive upload: %d%%", pct)
+                    last_reported = pct
+            retries = 0  # reset retry counter on successful chunk
+        except Exception as e:
+            retries += 1
+            if retries > max_retries:
+                logger.error("Failed to upload after %d retries: %s", max_retries, e)
+                raise
+            wait_time = retries * 5
+            logger.warning("Upload chunk error (%s). Retrying in %ds... (Attempt %d/%d)", e, wait_time, retries, max_retries)
+            time.sleep(wait_time)
             
     file_id = response.get("id")
     logger.info("Uploaded successfully to Drive! File ID: %s", file_id)
@@ -104,9 +116,6 @@ def upload_to_drive(drive_service, file_path: str, filename: str, folder_id: str
     return file_id
 
 async def fast_download_file(client: TelegramClient, message, out_path: str):
-    """
-    High-speed chunked downloader utilizing 512KB chunks and progress logging
-    """
     total_size = message.file.size if message.file else 0
     total_mb = total_size // (1024 * 1024)
     logger.info("Fast downloading media (%d MB)...", total_mb)
@@ -114,7 +123,6 @@ async def fast_download_file(client: TelegramClient, message, out_path: str):
     with open(out_path, "wb") as f:
         downloaded = 0
         last_logged = 0
-        # 512KB chunk size (Telegram optimal upper limit)
         async for chunk in client.iter_download(message.media, chunk_size=512 * 1024):
             f.write(chunk)
             downloaded += len(chunk)
@@ -208,6 +216,8 @@ async def main():
                         os.remove(local_path)
                 else:
                     logger.warning("Message %s has no media!", msg_id)
+            elif lec.get("driveFileId"):
+                logger.info("Skipping %s - already uploaded (Drive ID: %s)", lec_key, lec.get("driveFileId"))
 
         # Process sections safely
         for sec_key, sec in iter_records(subject.get("sections"), "section"):
@@ -234,6 +244,8 @@ async def main():
                         
                     if os.path.exists(local_path):
                         os.remove(local_path)
+            elif sec.get("driveFileId"):
+                logger.info("Skipping %s - already uploaded", sec_key)
 
     logger.info("Finished sync! Updated %d videos in catalog.", updated_count)
     await tg_client.disconnect()

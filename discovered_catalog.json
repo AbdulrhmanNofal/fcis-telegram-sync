@@ -152,8 +152,8 @@
     "subjectName": "Linear Algebra",
     "originalFileName": "Linear Algebra Lec 1 stu4.pdf",
     "fileSize": 1299991,
-    "alreadyUploaded": true,
-    "selected": false
+    "alreadyUploaded": false,
+    "selected": true
   },
   {
     "messageId": 687,
@@ -164,8 +164,8 @@
     "subjectName": "Linear Algebra",
     "originalFileName": "Linear Algebra Lec 2 stu4.pdf",
     "fileSize": 638121,
-    "alreadyUploaded": true,
-    "selected": false
+    "alreadyUploaded": false,
+    "selected": true
   },
   {
     "messageId": 747,
@@ -176,8 +176,8 @@
     "subjectName": "Linear Algebra",
     "originalFileName": "Linear Algebra Lec 3 stu4.pdf",
     "fileSize": 1276599,
-    "alreadyUploaded": true,
-    "selected": false
+    "alreadyUploaded": false,
+    "selected": true
   },
   {
     "messageId": 429,
@@ -332,8 +332,8 @@
     "subjectName": "Data-Structures & Algorithms",
     "originalFileName": "Data structure & Algorithm Lec04.pdf",
     "fileSize": 5789289,
-    "alreadyUploaded": true,
-    "selected": false
+    "alreadyUploaded": false,
+    "selected": true
   },
   {
     "messageId": 98,
@@ -384,42 +384,6 @@
     "selected": false
   },
   {
-    "messageId": 761,
-    "topicId": "21",
-    "title": "Sec 01",
-    "type": "Section",
-    "subjectId": 3,
-    "subjectName": "Operating Systems",
-    "originalFileName": "week 1 2026-2027.pptx",
-    "fileSize": 5392350,
-    "alreadyUploaded": false,
-    "selected": true
-  },
-  {
-    "messageId": 762,
-    "topicId": "21",
-    "title": "Sec 01",
-    "type": "Section",
-    "subjectId": 3,
-    "subjectName": "Operating Systems",
-    "originalFileName": "week 2 2026-2027.pptx",
-    "fileSize": 1576860,
-    "alreadyUploaded": false,
-    "selected": true
-  },
-  {
-    "messageId": 763,
-    "topicId": "21",
-    "title": "Sec 01",
-    "type": "Section",
-    "subjectId": 3,
-    "subjectName": "Operating Systems",
-    "originalFileName": "week 3 2026-2027.pptx",
-    "fileSize": 2844961,
-    "alreadyUploaded": false,
-    "selected": true
-  },
-  {
     "messageId": 107,
     "topicId": "14",
     "title": "Lec 01",
@@ -452,8 +416,8 @@
     "subjectName": "Computer Organization & Architecture",
     "originalFileName": "Arc & Org Lec04.pdf",
     "fileSize": 1816599,
-    "alreadyUploaded": true,
-    "selected": false
+    "alreadyUploaded": false,
+    "selected": true
   },
   {
     "messageId": 105,
@@ -524,8 +488,8 @@
     "subjectName": "Web Development",
     "originalFileName": "Web Programming_04.pdf",
     "fileSize": 1482520,
-    "alreadyUploaded": true,
-    "selected": false
+    "alreadyUploaded": false,
+    "selected": true
   },
   {
     "messageId": 704,
@@ -536,8 +500,8 @@
     "subjectName": "Web Development",
     "originalFileName": "section 8.pdf",
     "fileSize": 539054,
-    "alreadyUploaded": true,
-    "selected": false
+    "alreadyUploaded": false,
+    "selected": true
   },
   {
     "messageId": 705,
@@ -548,8 +512,8 @@
     "subjectName": "Web Development",
     "originalFileName": "section 7.pdf",
     "fileSize": 2315908,
-    "alreadyUploaded": true,
-    "selected": false
+    "alreadyUploaded": false,
+    "selected": true
   },
   {
     "messageId": 706,
@@ -560,8 +524,8 @@
     "subjectName": "Web Development",
     "originalFileName": "section 6.pdf",
     "fileSize": 1108294,
-    "alreadyUploaded": true,
-    "selected": false
+    "alreadyUploaded": false,
+    "selected": true
   },
   {
     "messageId": 707,
@@ -572,8 +536,8 @@
     "subjectName": "Web Development",
     "originalFileName": "section 5.pdf",
     "fileSize": 1469140,
-    "alreadyUploaded": true,
-    "selected": false
+    "alreadyUploaded": false,
+    "selected": true
   },
   {
     "messageId": 708,
@@ -584,8 +548,8 @@
     "subjectName": "Web Development",
     "originalFileName": "section 4.pdf",
     "fileSize": 497455,
-    "alreadyUploaded": true,
-    "selected": false
+    "alreadyUploaded": false,
+    "selected": true
   },
   {
     "messageId": 709,
@@ -596,8 +560,8 @@
     "subjectName": "Web Development",
     "originalFileName": "section 3.pdf",
     "fileSize": 480182,
-    "alreadyUploaded": true,
-    "selected": false
+    "alreadyUploaded": false,
+    "selected": true
   },
   {
     "messageId": 710,
@@ -608,8 +572,8 @@
     "subjectName": "Web Development",
     "originalFileName": "section 2.pdf",
     "fileSize": 585315,
-    "alreadyUploaded": true,
-    "selected": false
+    "alreadyUploaded": false,
+    "selected": true
   },
   {
     "messageId": 711,
@@ -620,102 +584,6 @@
     "subjectName": "Web Development",
     "originalFileName": "section 1.pdf",
     "fileSize": 401075,
-    "alreadyUploaded": true,
-    "selected": false
-  },
-  {
-    "messageId": 764,
-    "topicId": "14",
-    "title": "Sec 03",
-    "type": "Section",
-    "subjectId": 2,
-    "subjectName": "Computer Organization & Architecture",
-    "originalFileName": "Arc & Org Esraa-Salah lab03.pdf",
-    "fileSize": 537339,
-    "alreadyUploaded": false,
-    "selected": true
-  },
-  {
-    "messageId": 754,
-    "topicId": "19",
-    "title": "Linear Algebra 3",
-    "type": "Summary",
-    "subjectId": 5,
-    "subjectName": "Linear Algebra",
-    "originalFileName": "Linear Algebra 3.html",
-    "fileSize": 131576,
-    "alreadyUploaded": false,
-    "selected": true
-  },
-  {
-    "messageId": 753,
-    "topicId": "19",
-    "title": "Linear Algebra 2",
-    "type": "Summary",
-    "subjectId": 5,
-    "subjectName": "Linear Algebra",
-    "originalFileName": "Linear Algebra 2.html",
-    "fileSize": 121103,
-    "alreadyUploaded": false,
-    "selected": true
-  },
-  {
-    "messageId": 679,
-    "topicId": "19",
-    "title": "Linear Algebra 1",
-    "type": "Summary",
-    "subjectId": 5,
-    "subjectName": "Linear Algebra",
-    "originalFileName": "Linear Algebra 1.html",
-    "fileSize": 186738,
-    "alreadyUploaded": false,
-    "selected": true
-  },
-  {
-    "messageId": 621,
-    "topicId": "17",
-    "title": "Lec 03",
-    "type": "Lecture",
-    "subjectId": 4,
-    "subjectName": "Web Development",
-    "originalFileName": "Web_Lec03_Part2.html",
-    "fileSize": 188632,
-    "alreadyUploaded": true,
-    "selected": false
-  },
-  {
-    "messageId": 620,
-    "topicId": "17",
-    "title": "Lec 03",
-    "type": "Lecture",
-    "subjectId": 4,
-    "subjectName": "Web Development",
-    "originalFileName": "Web_Lec03_Part1.html",
-    "fileSize": 201361,
-    "alreadyUploaded": true,
-    "selected": false
-  },
-  {
-    "messageId": 619,
-    "topicId": "17",
-    "title": "Lec 02",
-    "type": "Lecture",
-    "subjectId": 4,
-    "subjectName": "Web Development",
-    "originalFileName": "Web_Lec02.html",
-    "fileSize": 210927,
-    "alreadyUploaded": true,
-    "selected": false
-  },
-  {
-    "messageId": 616,
-    "topicId": "14",
-    "title": "Sec 01",
-    "type": "Section",
-    "subjectId": 2,
-    "subjectName": "Computer Organization & Architecture",
-    "originalFileName": "Arc & Org Section 1 summary stu1.pdf",
-    "fileSize": 2015112,
     "alreadyUploaded": true,
     "selected": false
   },
@@ -732,90 +600,6 @@
     "selected": false
   },
   {
-    "messageId": 586,
-    "topicId": "17",
-    "title": "CSE102-CheatSheetCSSLong",
-    "type": "Summary",
-    "subjectId": 4,
-    "subjectName": "Web Development",
-    "originalFileName": "CSE102-CheatSheetCSSLong.pdf",
-    "fileSize": 700154,
-    "alreadyUploaded": true,
-    "selected": false
-  },
-  {
-    "messageId": 585,
-    "topicId": "17",
-    "title": "CSE102-CheatSheetHTML",
-    "type": "Summary",
-    "subjectId": 4,
-    "subjectName": "Web Development",
-    "originalFileName": "CSE102-CheatSheetHTML.pdf",
-    "fileSize": 340249,
-    "alreadyUploaded": true,
-    "selected": false
-  },
-  {
-    "messageId": 540,
-    "topicId": "14",
-    "title": "Lec 03",
-    "type": "Lecture",
-    "subjectId": 2,
-    "subjectName": "Computer Organization & Architecture",
-    "originalFileName": "lec03-binary-arithmetic.html",
-    "fileSize": 157937,
-    "alreadyUploaded": true,
-    "selected": false
-  },
-  {
-    "messageId": 488,
-    "topicId": "",
-    "title": "Questions_Bank_2nd_year",
-    "type": "Exam",
-    "subjectId": null,
-    "subjectName": "عام",
-    "originalFileName": "Questions_Bank_2nd_year.html",
-    "fileSize": 511566,
-    "alreadyUploaded": false,
-    "selected": true
-  },
-  {
-    "messageId": 116,
-    "topicId": "21",
-    "title": "Lec 01",
-    "type": "Lecture",
-    "subjectId": 3,
-    "subjectName": "Operating Systems",
-    "originalFileName": "OS Lec01 HTML.html",
-    "fileSize": 159294,
-    "alreadyUploaded": true,
-    "selected": false
-  },
-  {
-    "messageId": 113,
-    "topicId": "17",
-    "title": "Lec 01",
-    "type": "Lecture",
-    "subjectId": 4,
-    "subjectName": "Web Development",
-    "originalFileName": "Web_Lec01.html",
-    "fileSize": 187625,
-    "alreadyUploaded": true,
-    "selected": false
-  },
-  {
-    "messageId": 109,
-    "topicId": "14",
-    "title": "Lec 01",
-    "type": "Lecture",
-    "subjectId": 2,
-    "subjectName": "Computer Organization & Architecture",
-    "originalFileName": "lec01-data-representation.html",
-    "fileSize": 123845,
-    "alreadyUploaded": true,
-    "selected": false
-  },
-  {
     "messageId": 106,
     "topicId": "14",
     "title": "Lec 01",
@@ -824,30 +608,6 @@
     "subjectName": "Computer Organization & Architecture",
     "originalFileName": "Arc & Org Lec01.pdf",
     "fileSize": 3341855,
-    "alreadyUploaded": true,
-    "selected": false
-  },
-  {
-    "messageId": 97,
-    "topicId": "23",
-    "title": "Lec 01",
-    "type": "Lecture",
-    "subjectId": 1,
-    "subjectName": "Data-Structures & Algorithms",
-    "originalFileName": "Data structure & Algorithm Lec01 [EN].html",
-    "fileSize": 118543,
-    "alreadyUploaded": true,
-    "selected": false
-  },
-  {
-    "messageId": 96,
-    "topicId": "23",
-    "title": "Lec 01",
-    "type": "Lecture",
-    "subjectId": 1,
-    "subjectName": "Data-Structures & Algorithms",
-    "originalFileName": "Data structure & Algorithm Lec01.html",
-    "fileSize": 128628,
     "alreadyUploaded": true,
     "selected": false
   }

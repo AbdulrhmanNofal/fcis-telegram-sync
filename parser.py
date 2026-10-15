@@ -115,6 +115,13 @@ def parse_overview_message(text: str, entities: list = None) -> List[Dict[str, A
 
 def _process_block_link(raw_label: str, url: str, expected_type: str, student_tag: Optional[str] = None) -> Optional[Dict[str, Any]]:
     norm = normalize_text(raw_label)
+    norm_lower = norm.lower()
+
+    # Reject unwanted content explicitly
+    forbidden_terms = ['html', 'htm', 'تسجيل', 'صوت', 'ريكورد', 'recording', 'audio', 'ملخص', 'summary', 'اسئلة', 'أسئلة', 'quiz', 'bank', 'شيت', 'sheet', 'واجب']
+    if any(ft in norm_lower for ft in forbidden_terms):
+        return None
+
     clean_label = re.sub(r'[*_~`\s]', '', norm).upper()
     
     if expected_type == "Lecture":

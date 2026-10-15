@@ -18,6 +18,7 @@ from telethon.sessions import StringSession
 from database import init_db, is_already_synced, record_synced
 from parser import parse_overview_message, extract_subject_info
 from fcis_api import FcisApiClient
+from classifier import classify_telegram_item
 
 logging.basicConfig(
     format="%(asctime)s - [%(levelname)s] - %(name)s: %(message)s",
@@ -144,30 +145,37 @@ async def scan_overview_items(client: TelegramClient, api_client: FcisApiClient,
         for single_msg in msgs_to_inspect:
             file_name = getattr(single_msg.file, 'name', None) or f"{item['title']}.pdf"
             file_size = getattr(single_msg.file, 'size', 0)
-            subject_info = item.get("_subject_info", {})
-            subject_id = api_client.resolve_subject_id(topic_id, subject_info.get("name"))
 
-            item_title = item["title"]
-            import re
-            m_num = re.search(r'(?:lec|sec|ch|section|lecture|محاضرة|سكشن)\s*0*(\d+)', file_name, re.IGNORECASE)
-            if m_num and (len(msgs_to_inspect) > 1 or item_title.strip().upper() in ["ALL", "LINK", "HERE", "CLICK"] or not item_title.strip()):
-                prefix = "Sec" if item["type"] == "Section" else "Lec"
-                num_str = f"{int(m_num.group(1)):02d}"
-                tag = ""
-                tag_m = re.search(r'\(طالب \d+\)', item["title"])
-                if tag_m:
-                    tag = f" {tag_m.group(0)}"
-                item_title = f"{prefix} {num_str}{tag}"
+            # STRICT CHECK: Only PDF and PowerPoint
+            _, ext = os.path.splitext(file_name)
+            if ext.lower() not in ['.pdf', '.pptx', '.ppt']:
+                continue
 
-            already_uploaded = api_client.is_material_already_on_platform(subject_id, item_title, item["type"])
+            cls_result = classify_telegram_item(
+                file_name=file_name,
+                message_text=single_msg.text or item.get("title", ""),
+                topic_id=topic_id,
+                config_topics=api_client.config.get("topics", {}),
+                expected_type=item.get("type")
+            )
+
+            if not cls_result["isValid"] or cls_result["type"] not in ["Lecture", "Section"]:
+                continue
+
+            final_title = cls_result["title"] or item["title"]
+            final_type = cls_result["type"] or item["type"]
+            final_subj_id = cls_result["subjectId"] or api_client.resolve_subject_id(topic_id, item.get("_subject_info", {}).get("name"))
+            final_subj_name = cls_result["subjectName"] or item.get("_subject_info", {}).get("name") or f"Topic {topic_id}"
+
+            already_uploaded = api_client.is_material_already_on_platform(final_subj_id, final_title, final_type)
 
             discovered.append({
                 "messageId": single_msg.id,
                 "topicId": topic_id,
-                "title": item_title,
-                "type": item["type"],
-                "subjectId": subject_id,
-                "subjectName": subject_info.get("name") or f"Topic {topic_id}",
+                "title": final_title,
+                "type": final_type,
+                "subjectId": final_subj_id,
+                "subjectName": final_subj_name,
                 "originalFileName": file_name,
                 "fileSize": file_size,
                 "alreadyUploaded": already_uploaded,
@@ -175,16 +183,15 @@ async def scan_overview_items(client: TelegramClient, api_client: FcisApiClient,
             })
 
     # 5. Direct community & topic media scanner: Deep scan across all recent messages and topics
-    allowed_exts = ['.pdf', '.docx', '.pptx', '.xlsx', '.png', '.jpg', '.jpeg', '.zip', '.html']
+    allowed_exts = ['.pdf', '.pptx', '.ppt']
     
-    # Scan recent messages across the whole community (all topics)
     try:
         async for msg in client.iter_messages(community_entity, limit=400):
             if not msg.media or not getattr(msg, 'file', None):
                 continue
             file_name = getattr(msg.file, 'name', '') or ''
-            file_ext = os.path.splitext(file_name)[1].lower()
-            if file_ext not in allowed_exts:
+            _, file_ext = os.path.splitext(file_name)
+            if file_ext.lower() not in allowed_exts:
                 continue
 
             if any(it["messageId"] == msg.id for it in discovered):
@@ -194,50 +201,29 @@ async def scan_overview_items(client: TelegramClient, api_client: FcisApiClient,
             tid_found = getattr(reply_to, 'reply_to_top_id', None) or getattr(reply_to, 'reply_to_msg_id', None)
             tid_str = str(tid_found) if tid_found else ""
 
-            subject_id = api_client.resolve_subject_id(tid_str)
-            sub_info = api_client.config.get("topics", {}).get(tid_str, {})
-            subject_name = sub_info.get("englishName") or sub_info.get("subjectName") or (f"Topic {tid_str}" if tid_str else "عام")
+            cls_result = classify_telegram_item(
+                file_name=file_name,
+                message_text=msg.text or "",
+                topic_id=tid_str,
+                config_topics=api_client.config.get("topics", {})
+            )
 
-            combined_name = f"{file_name} {msg.text or ''}"
-            import re
-
-            # Skip assignments/homework
-            if re.search(r'(?:assignment|homework|واجب|تكليف)\b', combined_name, re.IGNORECASE):
+            # Strictly reject non-lecture, non-section, or invalid items
+            if not cls_result["isValid"] or cls_result["type"] not in ["Lecture", "Section"]:
                 continue
 
-            # Classify type & title
-            m_num = re.search(r'(?:lec(?:ture)?|ch(?:apter)?|محاضر[ةه]|شابتر|فصل)\s*[-_.]?\s*0*(\d+)', combined_name, re.IGNORECASE)
-            s_num = re.search(r'(?:sec(?:tion)?|lab|lap|سكشن|سيكشن|لاب|معمل)\s*[-_.]?\s*0*(\d+)', combined_name, re.IGNORECASE)
-            sum_m = re.search(r'(?:summary|ملخص|cheatsheet|مراجعة|تلخيص)', combined_name, re.IGNORECASE)
-            exam_m = re.search(r'(?:exam|امتحان|فاينل|ميد|mid|final|quiz)', combined_name, re.IGNORECASE)
+            subject_id = cls_result["subjectId"] or api_client.resolve_subject_id(tid_str)
+            subject_name = cls_result["subjectName"] or (f"Topic {tid_str}" if tid_str else "عام")
+            clean_title = cls_result["title"]
+            item_type = cls_result["type"]
 
-            inferred_type = "Lecture"
-            clean_title = os.path.splitext(file_name)[0].strip()
-
-            if m_num:
-                inferred_type = "Lecture"
-                clean_title = f"Lec {int(m_num.group(1)):02d}"
-            elif s_num:
-                inferred_type = "Section"
-                clean_title = f"Sec {int(s_num.group(1)):02d}"
-            elif sum_m:
-                inferred_type = "Summary"
-            elif exam_m:
-                inferred_type = "Exam"
-            else:
-                inferred_type = "Summary"
-
-            stu_m = re.search(r'(?:student|طالب)\s*0*(\d+)', combined_name, re.IGNORECASE)
-            if stu_m and inferred_type in ("Lecture", "Section"):
-                clean_title += f" (طالب {stu_m.group(1)})"
-
-            already_up = api_client.is_material_already_on_platform(subject_id, clean_title, inferred_type) if subject_id else False
+            already_up = api_client.is_material_already_on_platform(subject_id, clean_title, item_type) if subject_id else False
 
             discovered.append({
                 "messageId": msg.id,
                 "topicId": tid_str,
                 "title": clean_title,
-                "type": inferred_type,
+                "type": item_type,
                 "subjectId": subject_id,
                 "subjectName": subject_name,
                 "originalFileName": file_name,
@@ -307,9 +293,14 @@ async def sync_approved_items(client: TelegramClient, api_client: FcisApiClient,
 
             original_filename = getattr(target_msg.file, 'name', None) or f"{title}.pdf"
             ext = os.path.splitext(original_filename)[1].lower()
-            if ext not in ['.pdf', '.docx', '.pptx', '.xlsx', '.png', '.jpg', '.jpeg', '.zip']:
-                logger.warning("Skipping '%s' (%s) - unsupported extension '%s'.", title, original_filename, ext)
-                failed.append({"messageId": msg_id, "error": f"Unsupported file type '{ext}'"})
+            if ext not in ['.pdf', '.pptx', '.ppt']:
+                logger.warning("Skipping '%s' (%s) - unsupported extension '%s'. Only PDF and PPT are allowed.", title, original_filename, ext)
+                failed.append({"messageId": msg_id, "error": f"امتداد الملف '{ext}' غير مدعوم. يُسمح فقط بـ PDF و PPTX/PPT."})
+                continue
+
+            if material_type not in ['Lecture', 'Section']:
+                logger.warning("Skipping '%s' - unsupported type '%s'. Only Lecture and Section are allowed.", title, material_type)
+                failed.append({"messageId": msg_id, "error": f"النوع '{material_type}' غير مدعوم. يُسمح فقط بالمحاضرات والسكاشن."})
                 continue
 
             temp_file_path = os.path.join(TEMP_DIR, f"{msg_id}_{original_filename}")

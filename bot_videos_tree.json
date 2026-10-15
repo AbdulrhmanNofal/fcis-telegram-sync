@@ -1,0 +1,121 @@
+{
+  "Data-Structures & Algorithms (DSA)‎": {
+    "lectures": [
+      "Lec 01",
+      "Lec 02",
+      "Lec 03",
+      "Lec  04",
+      "Lec 05",
+      "Lec 06",
+      "Lec 07",
+      "Lec 08",
+      "Lec 09",
+      "Lec 10"
+    ],
+    "sections": [
+      "Sec 1",
+      "Sec 2",
+      "Sec 3",
+      "Sec 4",
+      "Sec 5",
+      "Sec 6",
+      "Sec 7",
+      "Sec 8",
+      "Sec 9",
+      "Sec 10"
+    ]
+  },
+  "Computer Organization & Architect": {
+    "lectures": [
+      "Lec 01",
+      "Lec 2",
+      "Lec 03",
+      "Lec  04",
+      "Lec 05",
+      "Lec 06",
+      "Lec 07",
+      "Lec 08",
+      "Lec 09",
+      "Lec 10"
+    ],
+    "sections": [
+      "Sec 1",
+      "Sec 2",
+      "Sec 3",
+      "Sec 4",
+      "Sec 5",
+      "Sec 6",
+      "Sec 7",
+      "Sec 8",
+      "Sec 9",
+      "Sec 10"
+    ]
+  },
+  "Operating Systems": {
+    "lectures": [
+      "Lec 01",
+      "Lec 02",
+      "Lec 03",
+      "Lec  04",
+      "Lec 05",
+      "Lec 06",
+      "Lec 07",
+      "Lec 08",
+      "Lec 09",
+      "Lec 10"
+    ],
+    "sections": [
+      "Sec 1",
+      "Sec 2",
+      "Sec 3",
+      "Sec 4",
+      "Sec 5",
+      "Sec 6",
+      "Sec 7",
+      "Sec 8",
+      "Sec 9",
+      "Sec 10"
+    ]
+  },
+  "Web Development": {
+    "lectures": [
+      "Lec 01",
+      "Lec 02",
+      "Lec 03",
+      "Lec  04",
+      "Lec 05",
+      "Lec 06",
+      "Lec 07",
+      "Lec 08",
+      "Lec 09",
+      "Lec 10"
+    ],
+    "sections": [
+      "Sec 1",
+      "Sec 2",
+      "Sec 3",
+      "Sec 4",
+      "Sec 5",
+      "Sec 6",
+      "Sec 7",
+      "Sec 8",
+      "Sec 9",
+      "Sec 10"
+    ]
+  },
+  "Linear Algebra": {
+    "lectures": [],
+    "sections": [
+      "Sec 1",
+      "Sec 2",
+      "Sec 3",
+      "Sec 4",
+      "Sec 5",
+      "Sec 6",
+      "Sec 7",
+      "Sec 8",
+      "Sec 9",
+      "Sec 10"
+    ]
+  }
+}

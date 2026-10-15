@@ -152,8 +152,8 @@
     "subjectName": "Linear Algebra",
     "originalFileName": "Linear Algebra Lec 1 stu4.pdf",
     "fileSize": 1299991,
-    "alreadyUploaded": false,
-    "selected": true
+    "alreadyUploaded": true,
+    "selected": false
   },
   {
     "messageId": 687,
@@ -164,8 +164,8 @@
     "subjectName": "Linear Algebra",
     "originalFileName": "Linear Algebra Lec 2 stu4.pdf",
     "fileSize": 638121,
-    "alreadyUploaded": false,
-    "selected": true
+    "alreadyUploaded": true,
+    "selected": false
   },
   {
     "messageId": 747,
@@ -176,8 +176,8 @@
     "subjectName": "Linear Algebra",
     "originalFileName": "Linear Algebra Lec 3 stu4.pdf",
     "fileSize": 1276599,
-    "alreadyUploaded": false,
-    "selected": true
+    "alreadyUploaded": true,
+    "selected": false
   },
   {
     "messageId": 429,
@@ -206,7 +206,7 @@
   {
     "messageId": 433,
     "topicId": "19",
-    "title": "Sec 03",
+    "title": "Sec 09",
     "type": "Section",
     "subjectId": 5,
     "subjectName": "Linear Algebra",
@@ -218,7 +218,7 @@
   {
     "messageId": 434,
     "topicId": "19",
-    "title": "Sec 03",
+    "title": "Sec 08",
     "type": "Section",
     "subjectId": 5,
     "subjectName": "Linear Algebra",
@@ -230,7 +230,7 @@
   {
     "messageId": 435,
     "topicId": "19",
-    "title": "Sec 03",
+    "title": "Sec 07",
     "type": "Section",
     "subjectId": 5,
     "subjectName": "Linear Algebra",
@@ -242,7 +242,7 @@
   {
     "messageId": 436,
     "topicId": "19",
-    "title": "Sec 03",
+    "title": "Sec 06",
     "type": "Section",
     "subjectId": 5,
     "subjectName": "Linear Algebra",
@@ -254,7 +254,7 @@
   {
     "messageId": 437,
     "topicId": "19",
-    "title": "Sec 03",
+    "title": "Sec 05",
     "type": "Section",
     "subjectId": 5,
     "subjectName": "Linear Algebra",
@@ -266,7 +266,7 @@
   {
     "messageId": 438,
     "topicId": "19",
-    "title": "Sec 03",
+    "title": "Sec 04",
     "type": "Section",
     "subjectId": 5,
     "subjectName": "Linear Algebra",
@@ -332,8 +332,8 @@
     "subjectName": "Data-Structures & Algorithms",
     "originalFileName": "Data structure & Algorithm Lec04.pdf",
     "fileSize": 5789289,
-    "alreadyUploaded": false,
-    "selected": true
+    "alreadyUploaded": true,
+    "selected": false
   },
   {
     "messageId": 98,
@@ -416,8 +416,8 @@
     "subjectName": "Computer Organization & Architecture",
     "originalFileName": "Arc & Org Lec04.pdf",
     "fileSize": 1816599,
-    "alreadyUploaded": false,
-    "selected": true
+    "alreadyUploaded": true,
+    "selected": false
   },
   {
     "messageId": 105,
@@ -488,104 +488,104 @@
     "subjectName": "Web Development",
     "originalFileName": "Web Programming_04.pdf",
     "fileSize": 1482520,
-    "alreadyUploaded": false,
-    "selected": true
+    "alreadyUploaded": true,
+    "selected": false
   },
   {
     "messageId": 704,
     "topicId": "17",
-    "title": "ALL",
+    "title": "Sec 08",
     "type": "Section",
     "subjectId": 4,
     "subjectName": "Web Development",
     "originalFileName": "section 8.pdf",
     "fileSize": 539054,
-    "alreadyUploaded": false,
-    "selected": true
+    "alreadyUploaded": true,
+    "selected": false
   },
   {
     "messageId": 705,
     "topicId": "17",
-    "title": "ALL",
+    "title": "Sec 07",
     "type": "Section",
     "subjectId": 4,
     "subjectName": "Web Development",
     "originalFileName": "section 7.pdf",
     "fileSize": 2315908,
-    "alreadyUploaded": false,
-    "selected": true
+    "alreadyUploaded": true,
+    "selected": false
   },
   {
     "messageId": 706,
     "topicId": "17",
-    "title": "ALL",
+    "title": "Sec 06",
     "type": "Section",
     "subjectId": 4,
     "subjectName": "Web Development",
     "originalFileName": "section 6.pdf",
     "fileSize": 1108294,
-    "alreadyUploaded": false,
-    "selected": true
+    "alreadyUploaded": true,
+    "selected": false
   },
   {
     "messageId": 707,
     "topicId": "17",
-    "title": "ALL",
+    "title": "Sec 05",
     "type": "Section",
     "subjectId": 4,
     "subjectName": "Web Development",
     "originalFileName": "section 5.pdf",
     "fileSize": 1469140,
-    "alreadyUploaded": false,
-    "selected": true
+    "alreadyUploaded": true,
+    "selected": false
   },
   {
     "messageId": 708,
     "topicId": "17",
-    "title": "ALL",
+    "title": "Sec 04",
     "type": "Section",
     "subjectId": 4,
     "subjectName": "Web Development",
     "originalFileName": "section 4.pdf",
     "fileSize": 497455,
-    "alreadyUploaded": false,
-    "selected": true
+    "alreadyUploaded": true,
+    "selected": false
   },
   {
     "messageId": 709,
     "topicId": "17",
-    "title": "ALL",
+    "title": "Sec 03",
     "type": "Section",
     "subjectId": 4,
     "subjectName": "Web Development",
     "originalFileName": "section 3.pdf",
     "fileSize": 480182,
-    "alreadyUploaded": false,
-    "selected": true
+    "alreadyUploaded": true,
+    "selected": false
   },
   {
     "messageId": 710,
     "topicId": "17",
-    "title": "ALL",
+    "title": "Sec 02",
     "type": "Section",
     "subjectId": 4,
     "subjectName": "Web Development",
     "originalFileName": "section 2.pdf",
     "fileSize": 585315,
-    "alreadyUploaded": false,
-    "selected": true
+    "alreadyUploaded": true,
+    "selected": false
   },
   {
     "messageId": 711,
     "topicId": "17",
-    "title": "ALL",
+    "title": "Sec 01",
     "type": "Section",
     "subjectId": 4,
     "subjectName": "Web Development",
     "originalFileName": "section 1.pdf",
     "fileSize": 401075,
-    "alreadyUploaded": false,
-    "selected": true
+    "alreadyUploaded": true,
+    "selected": false
   },
   {
     "messageId": 754,
@@ -692,8 +692,8 @@
     "subjectName": "Web Development",
     "originalFileName": "CSE102-CheatSheetCSSLong.pdf",
     "fileSize": 700154,
-    "alreadyUploaded": false,
-    "selected": true
+    "alreadyUploaded": true,
+    "selected": false
   },
   {
     "messageId": 585,
@@ -704,8 +704,8 @@
     "subjectName": "Web Development",
     "originalFileName": "CSE102-CheatSheetHTML.pdf",
     "fileSize": 340249,
-    "alreadyUploaded": false,
-    "selected": true
+    "alreadyUploaded": true,
+    "selected": false
   },
   {
     "messageId": 540,

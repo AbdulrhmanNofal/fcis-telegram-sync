@@ -2,8 +2,10 @@ import os
 import json
 import asyncio
 import logging
+import math
 import requests
-from telethon import TelegramClient
+from telethon import TelegramClient, utils
+from telethon.tl.types import DocumentAttributeFilename
 from telethon.sessions import StringSession
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
@@ -51,7 +53,6 @@ def get_drive_service():
     return build("drive", "v3", credentials=creds)
 
 def ensure_videos_folder(drive_service, parent_folder_id: str) -> str:
-    """Finds or creates a 'Videos' subfolder inside target folder"""
     query = f"name = 'Videos' and '{parent_folder_id}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false"
     res = drive_service.files().list(q=query, fields="files(id, name)").execute()
     files = res.get("files", [])
@@ -68,13 +69,13 @@ def ensure_videos_folder(drive_service, parent_folder_id: str) -> str:
     return created["id"]
 
 def upload_to_drive(drive_service, file_path: str, filename: str, folder_id: str) -> str:
-    """Uploads video file using resumable chunked upload and makes it streamable"""
     logger.info("Uploading %s to Google Drive...", filename)
     file_metadata = {
         "name": filename,
         "parents": [folder_id]
     }
-    media = MediaFileUpload(file_path, mimetype="video/mp4", resumable=True, chunksize=15*1024*1024)
+    # 20MB chunk size for ultra-fast Drive uploads
+    media = MediaFileUpload(file_path, mimetype="video/mp4", resumable=True, chunksize=20*1024*1024)
     request = drive_service.files().create(body=file_metadata, media_body=media, fields="id")
     
     response = None
@@ -83,7 +84,7 @@ def upload_to_drive(drive_service, file_path: str, filename: str, folder_id: str
         status, response = request.next_chunk()
         if status:
             pct = int(status.progress() * 100)
-            if pct - last_reported >= 15 or pct == 100:
+            if pct - last_reported >= 25 or pct == 100:
                 logger.info("Google Drive upload: %d%%", pct)
                 last_reported = pct
             
@@ -102,8 +103,30 @@ def upload_to_drive(drive_service, file_path: str, filename: str, folder_id: str
         
     return file_id
 
+async def fast_download_file(client: TelegramClient, message, out_path: str):
+    """
+    High-speed chunked downloader utilizing 512KB chunks and progress logging
+    """
+    total_size = message.file.size if message.file else 0
+    total_mb = total_size // (1024 * 1024)
+    logger.info("Fast downloading media (%d MB)...", total_mb)
+
+    with open(out_path, "wb") as f:
+        downloaded = 0
+        last_logged = 0
+        # 512KB chunk size (Telegram optimal upper limit)
+        async for chunk in client.iter_download(message.media, chunk_size=512 * 1024):
+            f.write(chunk)
+            downloaded += len(chunk)
+            if total_size:
+                pct = int(downloaded * 100 / total_size)
+                if pct - last_logged >= 20 or pct == 100:
+                    logger.info("Telegram download: %d%% (%d / %d MB)", pct, downloaded // (1024 * 1024), total_mb)
+                    last_logged = pct
+
+    logger.info("Download completed: %s", out_path)
+
 def iter_records(value, record_type):
-    """Safely yields (key_name, dict_record) from list or dict structure"""
     if isinstance(value, list):
         for idx, item in enumerate(value):
             if isinstance(item, dict):
@@ -116,12 +139,6 @@ def iter_records(value, record_type):
                 yield (k, v)
             else:
                 logger.warning("Ignoring invalid %s for key %s", record_type, k)
-
-def download_progress_callback(current, total):
-    if total:
-        pct = int(current * 100 / total)
-        if pct % 20 == 0:
-            logger.info("Telegram download progress: %d%% (%d / %d MB)", pct, current // (1024*1024), total // (1024*1024))
 
 async def main():
     if not TG_SESSION_STRING:
@@ -167,7 +184,7 @@ async def main():
         for lec_key, lec in iter_records(subject.get("lectures"), "lecture"):
             if lec.get("available") and lec.get("messageId") and not lec.get("driveFileId"):
                 msg_id = lec["messageId"]
-                logger.info("Downloading %s (Message ID: %s)...", lec_key, msg_id)
+                logger.info("Processing %s (Message ID: %s)...", lec_key, msg_id)
                 msg = await tg_client.get_messages("me", ids=msg_id)
                 if not msg or not msg.media:
                     msg = await tg_client.get_messages("@fcishubbot", ids=msg_id)
@@ -175,16 +192,8 @@ async def main():
                 if msg and msg.media:
                     fname = f"Sub{sub_id}_{lec_key.replace(' ', '_')}.mp4"
                     local_path = os.path.join(temp_dir, fname)
-                    
-                    last_pct = [0]
-                    def prog(cur, tot):
-                        if tot:
-                            p = int(cur * 100 / tot)
-                            if p - last_pct[0] >= 20 or p == 100:
-                                logger.info("Telegram download: %d%% (%d / %d MB)", p, cur // (1024*1024), tot // (1024*1024))
-                                last_pct[0] = p
 
-                    await tg_client.download_media(msg, file=local_path, progress_callback=prog)
+                    await fast_download_file(tg_client, msg, local_path)
                     
                     drive_id = upload_to_drive(drive_service, local_path, fname, videos_folder_id)
                     lec["driveFileId"] = drive_id
@@ -204,7 +213,7 @@ async def main():
         for sec_key, sec in iter_records(subject.get("sections"), "section"):
             if sec.get("available") and sec.get("messageId") and not sec.get("driveFileId"):
                 msg_id = sec["messageId"]
-                logger.info("Downloading %s (Message ID: %s)...", sec_key, msg_id)
+                logger.info("Processing %s (Message ID: %s)...", sec_key, msg_id)
                 msg = await tg_client.get_messages("me", ids=msg_id)
                 if not msg or not msg.media:
                     msg = await tg_client.get_messages("@fcishubbot", ids=msg_id)
@@ -212,16 +221,8 @@ async def main():
                 if msg and msg.media:
                     fname = f"Sub{sub_id}_{sec_key.replace(' ', '_')}.mp4"
                     local_path = os.path.join(temp_dir, fname)
-                    
-                    last_pct = [0]
-                    def prog_sec(cur, tot):
-                        if tot:
-                            p = int(cur * 100 / tot)
-                            if p - last_pct[0] >= 20 or p == 100:
-                                logger.info("Telegram download: %d%% (%d / %d MB)", p, cur // (1024*1024), tot // (1024*1024))
-                                last_pct[0] = p
 
-                    await tg_client.download_media(msg, file=local_path, progress_callback=prog_sec)
+                    await fast_download_file(tg_client, msg, local_path)
                     
                     drive_id = upload_to_drive(drive_service, local_path, fname, videos_folder_id)
                     sec["driveFileId"] = drive_id

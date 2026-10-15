@@ -74,17 +74,21 @@ def upload_to_drive(drive_service, file_path: str, filename: str, folder_id: str
         "name": filename,
         "parents": [folder_id]
     }
-    media = MediaFileUpload(file_path, mimetype="video/mp4", resumable=True, chunksize=10*1024*1024)
+    media = MediaFileUpload(file_path, mimetype="video/mp4", resumable=True, chunksize=15*1024*1024)
     request = drive_service.files().create(body=file_metadata, media_body=media, fields="id")
     
     response = None
+    last_reported = 0
     while response is None:
         status, response = request.next_chunk()
         if status:
-            logger.info("Upload progress: %d%%", int(status.progress() * 100))
+            pct = int(status.progress() * 100)
+            if pct - last_reported >= 15 or pct == 100:
+                logger.info("Google Drive upload: %d%%", pct)
+                last_reported = pct
             
     file_id = response.get("id")
-    logger.info("File uploaded successfully. Drive File ID: %s", file_id)
+    logger.info("Uploaded successfully to Drive! File ID: %s", file_id)
     
     try:
         drive_service.permissions().create(
@@ -92,7 +96,7 @@ def upload_to_drive(drive_service, file_path: str, filename: str, folder_id: str
             body={"role": "reader", "type": "anyone"},
             fields="id"
         ).execute()
-        logger.info("Public permissions granted for Drive File ID: %s", file_id)
+        logger.info("Public streaming permissions granted for File ID: %s", file_id)
     except Exception as e:
         logger.warning("Could not set public permission: %s", e)
         
@@ -105,15 +109,19 @@ def iter_records(value, record_type):
             if isinstance(item, dict):
                 yield (f"item_{idx}", item)
             else:
-                logger.warning("Ignoring invalid %s at index %s: expected dict, got %r", record_type, idx, item)
+                logger.warning("Ignoring invalid %s at index %s", record_type, idx)
     elif isinstance(value, dict):
         for k, v in value.items():
             if isinstance(v, dict):
                 yield (k, v)
             else:
-                logger.warning("Ignoring invalid %s for key %s: expected dict, got %r", record_type, k, v)
-    else:
-        logger.warning("Ignoring invalid %s collection of type %s", record_type, type(value).__name__)
+                logger.warning("Ignoring invalid %s for key %s", record_type, k)
+
+def download_progress_callback(current, total):
+    if total:
+        pct = int(current * 100 / total)
+        if pct % 20 == 0:
+            logger.info("Telegram download progress: %d%% (%d / %d MB)", pct, current // (1024*1024), total // (1024*1024))
 
 async def main():
     if not TG_SESSION_STRING:
@@ -167,12 +175,25 @@ async def main():
                 if msg and msg.media:
                     fname = f"Sub{sub_id}_{lec_key.replace(' ', '_')}.mp4"
                     local_path = os.path.join(temp_dir, fname)
-                    await tg_client.download_media(msg, file=local_path)
+                    
+                    last_pct = [0]
+                    def prog(cur, tot):
+                        if tot:
+                            p = int(cur * 100 / tot)
+                            if p - last_pct[0] >= 20 or p == 100:
+                                logger.info("Telegram download: %d%% (%d / %d MB)", p, cur // (1024*1024), tot // (1024*1024))
+                                last_pct[0] = p
+
+                    await tg_client.download_media(msg, file=local_path, progress_callback=prog)
                     
                     drive_id = upload_to_drive(drive_service, local_path, fname, videos_folder_id)
                     lec["driveFileId"] = drive_id
                     lec["streamUrl"] = f"https://lh3.googleusercontent.com/d/{drive_id}"
                     updated_count += 1
+                    
+                    # Save catalog immediately after each video so progress is never lost
+                    with open(catalog_path, "w", encoding="utf-8") as f:
+                        json.dump(catalog, f, indent=2, ensure_ascii=False)
                     
                     if os.path.exists(local_path):
                         os.remove(local_path)
@@ -191,19 +212,27 @@ async def main():
                 if msg and msg.media:
                     fname = f"Sub{sub_id}_{sec_key.replace(' ', '_')}.mp4"
                     local_path = os.path.join(temp_dir, fname)
-                    await tg_client.download_media(msg, file=local_path)
+                    
+                    last_pct = [0]
+                    def prog_sec(cur, tot):
+                        if tot:
+                            p = int(cur * 100 / tot)
+                            if p - last_pct[0] >= 20 or p == 100:
+                                logger.info("Telegram download: %d%% (%d / %d MB)", p, cur // (1024*1024), tot // (1024*1024))
+                                last_pct[0] = p
+
+                    await tg_client.download_media(msg, file=local_path, progress_callback=prog_sec)
                     
                     drive_id = upload_to_drive(drive_service, local_path, fname, videos_folder_id)
                     sec["driveFileId"] = drive_id
                     sec["streamUrl"] = f"https://lh3.googleusercontent.com/d/{drive_id}"
                     updated_count += 1
                     
+                    with open(catalog_path, "w", encoding="utf-8") as f:
+                        json.dump(catalog, f, indent=2, ensure_ascii=False)
+                        
                     if os.path.exists(local_path):
                         os.remove(local_path)
-
-    # Save updated catalog
-    with open(catalog_path, "w", encoding="utf-8") as f:
-        json.dump(catalog, f, indent=2, ensure_ascii=False)
 
     logger.info("Finished sync! Updated %d videos in catalog.", updated_count)
     await tg_client.disconnect()

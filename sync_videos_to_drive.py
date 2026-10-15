@@ -2,6 +2,7 @@ import os
 import json
 import asyncio
 import logging
+import requests
 from telethon import TelegramClient
 from telethon.sessions import StringSession
 from google.oauth2.credentials import Credentials
@@ -12,24 +13,41 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(me
 logger = logging.getLogger("DriveVideoSync")
 
 # Telegram Credentials
-TG_API_ID = int(os.getenv("TG_API_ID", "38638396"))
-TG_API_HASH = os.getenv("TG_API_HASH", "6d24a31f0bcde46003175e912b000f09")
-TG_SESSION_STRING = os.getenv("TG_SESSION_STRING", "")
+TG_API_ID = int(os.getenv("TG_API_ID", "38638396").strip())
+TG_API_HASH = os.getenv("TG_API_HASH", "6d24a31f0bcde46003175e912b000f09").strip()
+TG_SESSION_STRING = os.getenv("TG_SESSION_STRING", "").strip()
 
 # Google Drive Credentials
-GDRIVE_CLIENT_ID = os.getenv("GDRIVE_CLIENT_ID", "")
-GDRIVE_CLIENT_SECRET = os.getenv("GDRIVE_CLIENT_SECRET", "")
-GDRIVE_REFRESH_TOKEN = os.getenv("GDRIVE_REFRESH_TOKEN", "")
-GDRIVE_FOLDER_ID = os.getenv("GDRIVE_FOLDER_ID", "1y3myf00rLLXJgq9jKCehlZWh3zkQSLaw")
+GDRIVE_CLIENT_ID = os.getenv("GDRIVE_CLIENT_ID", "").strip()
+GDRIVE_CLIENT_SECRET = os.getenv("GDRIVE_CLIENT_SECRET", "").strip()
+GDRIVE_REFRESH_TOKEN = os.getenv("GDRIVE_REFRESH_TOKEN", "").strip()
+GDRIVE_FOLDER_ID = os.getenv("GDRIVE_FOLDER_ID", "1y3myf00rLLXJgq9jKCehlZWh3zkQSLaw").strip()
 
 def get_drive_service():
+    # 1. Fetch fresh access token via OAuth2 token endpoint directly
+    token_resp = requests.post(
+        "https://oauth2.googleapis.com/token",
+        data={
+            "client_id": GDRIVE_CLIENT_ID,
+            "client_secret": GDRIVE_CLIENT_SECRET,
+            "refresh_token": GDRIVE_REFRESH_TOKEN,
+            "grant_type": "refresh_token"
+        },
+        timeout=15
+    )
+    if token_resp.status_code != 200:
+        logger.error("Failed to refresh token: %s", token_resp.text)
+        raise RuntimeError(f"Google OAuth refresh failed: {token_resp.text}")
+
+    access_token = token_resp.json()["access_token"]
+    logger.info("Acquired fresh Google Drive access token successfully!")
+
     creds = Credentials(
-        None,
+        token=access_token,
         refresh_token=GDRIVE_REFRESH_TOKEN,
         token_uri="https://oauth2.googleapis.com/token",
         client_id=GDRIVE_CLIENT_ID,
-        client_secret=GDRIVE_CLIENT_SECRET,
-        scopes=["https://www.googleapis.com/auth/drive.file"]
+        client_secret=GDRIVE_CLIENT_SECRET
     )
     return build("drive", "v3", credentials=creds)
 

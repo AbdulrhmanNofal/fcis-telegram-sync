@@ -24,7 +24,6 @@ GDRIVE_REFRESH_TOKEN = os.getenv("GDRIVE_REFRESH_TOKEN", "").strip()
 GDRIVE_FOLDER_ID = os.getenv("GDRIVE_FOLDER_ID", "1y3myf00rLLXJgq9jKCehlZWh3zkQSLaw").strip()
 
 def get_drive_service():
-    # 1. Fetch fresh access token via OAuth2 token endpoint directly
     token_resp = requests.post(
         "https://oauth2.googleapis.com/token",
         data={
@@ -87,7 +86,6 @@ def upload_to_drive(drive_service, file_path: str, filename: str, folder_id: str
     file_id = response.get("id")
     logger.info("File uploaded successfully. Drive File ID: %s", file_id)
     
-    # Set public read permissions so custom web player can stream it
     try:
         drive_service.permissions().create(
             fileId=file_id,
@@ -100,6 +98,23 @@ def upload_to_drive(drive_service, file_path: str, filename: str, folder_id: str
         
     return file_id
 
+def iter_records(value, record_type):
+    """Safely yields (key_name, dict_record) from list or dict structure"""
+    if isinstance(value, list):
+        for idx, item in enumerate(value):
+            if isinstance(item, dict):
+                yield (f"item_{idx}", item)
+            else:
+                logger.warning("Ignoring invalid %s at index %s: expected dict, got %r", record_type, idx, item)
+    elif isinstance(value, dict):
+        for k, v in value.items():
+            if isinstance(v, dict):
+                yield (k, v)
+            else:
+                logger.warning("Ignoring invalid %s for key %s: expected dict, got %r", record_type, k, v)
+    else:
+        logger.warning("Ignoring invalid %s collection of type %s", record_type, type(value).__name__)
+
 async def main():
     if not TG_SESSION_STRING:
         logger.error("TG_SESSION_STRING environment variable is required!")
@@ -109,7 +124,6 @@ async def main():
         logger.error("GDRIVE_REFRESH_TOKEN environment variable is required!")
         return
 
-    # Load catalog
     catalog_path = os.path.join(os.path.dirname(__file__), "indexed_videos.json")
     if not os.path.exists(catalog_path):
         logger.error("indexed_videos.json not found!")
@@ -141,53 +155,51 @@ async def main():
         sub_name = subject["subjectName"]
         logger.info("Processing subject: %s (ID: %s)", sub_name, sub_id)
 
-        lectures_dict = subject.get("lectures", {})
-        if isinstance(lectures_dict, dict):
-            for lec_key, lec in lectures_dict.items():
-                if isinstance(lec, dict) and lec.get("available") and lec.get("messageId") and not lec.get("driveFileId"):
-                    msg_id = lec["messageId"]
-                    logger.info("Downloading %s (Message ID: %s)...", lec_key, msg_id)
-                    msg = await tg_client.get_messages("me", ids=msg_id)
-                    if not msg or not msg.media:
-                        msg = await tg_client.get_messages("@fcishubbot", ids=msg_id)
+        # Process lectures safely
+        for lec_key, lec in iter_records(subject.get("lectures"), "lecture"):
+            if lec.get("available") and lec.get("messageId") and not lec.get("driveFileId"):
+                msg_id = lec["messageId"]
+                logger.info("Downloading %s (Message ID: %s)...", lec_key, msg_id)
+                msg = await tg_client.get_messages("me", ids=msg_id)
+                if not msg or not msg.media:
+                    msg = await tg_client.get_messages("@fcishubbot", ids=msg_id)
+                
+                if msg and msg.media:
+                    fname = f"Sub{sub_id}_{lec_key.replace(' ', '_')}.mp4"
+                    local_path = os.path.join(temp_dir, fname)
+                    await tg_client.download_media(msg, file=local_path)
                     
-                    if msg and msg.media:
-                        fname = f"Sub{sub_id}_{lec_key.replace(' ', '_')}.mp4"
-                        local_path = os.path.join(temp_dir, fname)
-                        await tg_client.download_media(msg, file=local_path)
-                        
-                        drive_id = upload_to_drive(drive_service, local_path, fname, videos_folder_id)
-                        lec["driveFileId"] = drive_id
-                        lec["streamUrl"] = f"https://lh3.googleusercontent.com/d/{drive_id}"
-                        updated_count += 1
-                        
-                        if os.path.exists(local_path):
-                            os.remove(local_path)
-                    else:
-                        logger.warning("Message %s has no media!", msg_id)
+                    drive_id = upload_to_drive(drive_service, local_path, fname, videos_folder_id)
+                    lec["driveFileId"] = drive_id
+                    lec["streamUrl"] = f"https://lh3.googleusercontent.com/d/{drive_id}"
+                    updated_count += 1
+                    
+                    if os.path.exists(local_path):
+                        os.remove(local_path)
+                else:
+                    logger.warning("Message %s has no media!", msg_id)
 
-        sections_dict = subject.get("sections", {})
-        if isinstance(sections_dict, dict):
-            for sec_key, sec in sections_dict.items():
-                if isinstance(sec, dict) and sec.get("available") and sec.get("messageId") and not sec.get("driveFileId"):
-                    msg_id = sec["messageId"]
-                    logger.info("Downloading %s (Message ID: %s)...", sec_key, msg_id)
-                    msg = await tg_client.get_messages("me", ids=msg_id)
-                    if not msg or not msg.media:
-                        msg = await tg_client.get_messages("@fcishubbot", ids=msg_id)
+        # Process sections safely
+        for sec_key, sec in iter_records(subject.get("sections"), "section"):
+            if sec.get("available") and sec.get("messageId") and not sec.get("driveFileId"):
+                msg_id = sec["messageId"]
+                logger.info("Downloading %s (Message ID: %s)...", sec_key, msg_id)
+                msg = await tg_client.get_messages("me", ids=msg_id)
+                if not msg or not msg.media:
+                    msg = await tg_client.get_messages("@fcishubbot", ids=msg_id)
+                
+                if msg and msg.media:
+                    fname = f"Sub{sub_id}_{sec_key.replace(' ', '_')}.mp4"
+                    local_path = os.path.join(temp_dir, fname)
+                    await tg_client.download_media(msg, file=local_path)
                     
-                    if msg and msg.media:
-                        fname = f"Sub{sub_id}_{sec_key.replace(' ', '_')}.mp4"
-                        local_path = os.path.join(temp_dir, fname)
-                        await tg_client.download_media(msg, file=local_path)
-                        
-                        drive_id = upload_to_drive(drive_service, local_path, fname, videos_folder_id)
-                        sec["driveFileId"] = drive_id
-                        sec["streamUrl"] = f"https://lh3.googleusercontent.com/d/{drive_id}"
-                        updated_count += 1
-                        
-                        if os.path.exists(local_path):
-                            os.remove(local_path)
+                    drive_id = upload_to_drive(drive_service, local_path, fname, videos_folder_id)
+                    sec["driveFileId"] = drive_id
+                    sec["streamUrl"] = f"https://lh3.googleusercontent.com/d/{drive_id}"
+                    updated_count += 1
+                    
+                    if os.path.exists(local_path):
+                        os.remove(local_path)
 
     # Save updated catalog
     with open(catalog_path, "w", encoding="utf-8") as f:

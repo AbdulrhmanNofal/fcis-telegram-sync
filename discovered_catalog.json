@@ -272,8 +272,8 @@
     "subjectName": "Linear Algebra",
     "originalFileName": "Section 3.pdf",
     "fileSize": 953261,
-    "alreadyUploaded": false,
-    "selected": true
+    "alreadyUploaded": true,
+    "selected": false
   },
   {
     "messageId": 93,
@@ -380,8 +380,8 @@
     "subjectName": "Operating Systems",
     "originalFileName": "week 1 2026-2027.pptx",
     "fileSize": 5392350,
-    "alreadyUploaded": false,
-    "selected": true
+    "alreadyUploaded": true,
+    "selected": false
   },
   {
     "messageId": 762,
@@ -392,8 +392,8 @@
     "subjectName": "Operating Systems",
     "originalFileName": "week 2 2026-2027.pptx",
     "fileSize": 1576860,
-    "alreadyUploaded": false,
-    "selected": true
+    "alreadyUploaded": true,
+    "selected": false
   },
   {
     "messageId": 763,
@@ -404,8 +404,8 @@
     "subjectName": "Operating Systems",
     "originalFileName": "week 3 2026-2027.pptx",
     "fileSize": 2844961,
-    "alreadyUploaded": false,
-    "selected": true
+    "alreadyUploaded": true,
+    "selected": false
   },
   {
     "messageId": 107,
@@ -620,8 +620,8 @@
     "subjectName": "Computer Organization & Architecture",
     "originalFileName": "Arc & Org Esraa-Salah lab03.pdf",
     "fileSize": 537339,
-    "alreadyUploaded": false,
-    "selected": true
+    "alreadyUploaded": true,
+    "selected": false
   },
   {
     "messageId": 597,

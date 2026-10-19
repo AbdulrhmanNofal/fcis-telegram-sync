@@ -324,6 +324,18 @@
     "selected": false
   },
   {
+    "messageId": 834,
+    "topicId": "23",
+    "title": "Lec 05",
+    "type": "Lecture",
+    "subjectId": 1,
+    "subjectName": "Data-Structures & Algorithms",
+    "originalFileName": "Data structure & Algorithm Lec05.pdf.pdf",
+    "fileSize": 1155736,
+    "alreadyUploaded": false,
+    "selected": true
+  },
+  {
     "messageId": 98,
     "topicId": "23",
     "title": "Sec 01",

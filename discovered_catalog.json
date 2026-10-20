@@ -7,7 +7,7 @@
     "subjectId": 5,
     "subjectName": "Linear Algebra",
     "originalFileName": "Linear Algebra lec 1 no1.pdf",
-    "fileSize": 2364650,
+    "fileSize": 4147566,
     "alreadyUploaded": true,
     "selected": false
   },
@@ -526,6 +526,18 @@
     "fileSize": 1482520,
     "alreadyUploaded": true,
     "selected": false
+  },
+  {
+    "messageId": 875,
+    "topicId": "17",
+    "title": "Lec 05",
+    "type": "Lecture",
+    "subjectId": 4,
+    "subjectName": "Web Development",
+    "originalFileName": "Web Programming_05.pdf",
+    "fileSize": 805611,
+    "alreadyUploaded": false,
+    "selected": true
   },
   {
     "messageId": 704,

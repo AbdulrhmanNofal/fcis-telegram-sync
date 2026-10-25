@@ -168,6 +168,18 @@
     "selected": false
   },
   {
+    "messageId": 957,
+    "topicId": "19",
+    "title": "Lec 04 (طالب 4)",
+    "type": "Lecture",
+    "subjectId": 5,
+    "subjectName": "Linear Algebra",
+    "originalFileName": "Linear Algebra Lec 4 stu4.pdf",
+    "fileSize": 1169311,
+    "alreadyUploaded": false,
+    "selected": true
+  },
+  {
     "messageId": 429,
     "topicId": "19",
     "title": "Sec 01",
@@ -488,6 +500,18 @@
     "subjectName": "Computer Organization & Architecture",
     "originalFileName": "Arc & Org Esraa-Salah lab02.pdf",
     "fileSize": 466717,
+    "alreadyUploaded": true,
+    "selected": false
+  },
+  {
+    "messageId": 956,
+    "topicId": "14",
+    "title": "Sec 03",
+    "type": "Section",
+    "subjectId": 2,
+    "subjectName": "Computer Organization & Architecture",
+    "originalFileName": "Arc & Org lab03.pdf",
+    "fileSize": 718982,
     "alreadyUploaded": true,
     "selected": false
   },

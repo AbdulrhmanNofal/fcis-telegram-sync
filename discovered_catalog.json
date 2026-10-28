@@ -492,6 +492,18 @@
     "selected": false
   },
   {
+    "messageId": 996,
+    "topicId": "14",
+    "title": "Lec 05",
+    "type": "Lecture",
+    "subjectId": 2,
+    "subjectName": "Computer Organization & Architecture",
+    "originalFileName": "Arc & Org Lec05.pdf",
+    "fileSize": 5985471,
+    "alreadyUploaded": false,
+    "selected": true
+  },
+  {
     "messageId": 105,
     "topicId": "14",
     "title": "Sec 01",

@@ -176,8 +176,8 @@
     "subjectName": "Linear Algebra",
     "originalFileName": "Linear Algebra Lec 4 stu4.pdf",
     "fileSize": 1169311,
-    "alreadyUploaded": false,
-    "selected": true
+    "alreadyUploaded": true,
+    "selected": false
   },
   {
     "messageId": 429,
@@ -344,8 +344,8 @@
     "subjectName": "Data-Structures & Algorithms",
     "originalFileName": "Data structure & Algorithm Lec05.pdf.pdf",
     "fileSize": 1155736,
-    "alreadyUploaded": false,
-    "selected": true
+    "alreadyUploaded": true,
+    "selected": false
   },
   {
     "messageId": 969,
@@ -356,8 +356,8 @@
     "subjectName": "Data-Structures & Algorithms",
     "originalFileName": "Data structure & Algorithm Lec06.pdf",
     "fileSize": 844369,
-    "alreadyUploaded": false,
-    "selected": true
+    "alreadyUploaded": true,
+    "selected": false
   },
   {
     "messageId": 98,
@@ -416,8 +416,8 @@
     "subjectName": "Operating Systems",
     "originalFileName": "Operating Systems Lec04.pdf",
     "fileSize": 1072771,
-    "alreadyUploaded": false,
-    "selected": true
+    "alreadyUploaded": true,
+    "selected": false
   },
   {
     "messageId": 1005,
@@ -512,8 +512,8 @@
     "subjectName": "Computer Organization & Architecture",
     "originalFileName": "Arc & Org Lec05.pdf",
     "fileSize": 5985471,
-    "alreadyUploaded": false,
-    "selected": true
+    "alreadyUploaded": true,
+    "selected": false
   },
   {
     "messageId": 105,
@@ -608,8 +608,8 @@
     "subjectName": "Web Development",
     "originalFileName": "Web Programming_05.pdf",
     "fileSize": 805611,
-    "alreadyUploaded": false,
-    "selected": true
+    "alreadyUploaded": true,
+    "selected": false
   },
   {
     "messageId": 704,
@@ -716,8 +716,8 @@
     "subjectName": "Computer Organization & Architecture",
     "originalFileName": "Arc & Org Lec04 stu1.pdf",
     "fileSize": 908499,
-    "alreadyUploaded": false,
-    "selected": true
+    "alreadyUploaded": true,
+    "selected": false
   },
   {
     "messageId": 782,
@@ -728,8 +728,8 @@
     "subjectName": "Computer Organization & Architecture",
     "originalFileName": "Arc & Org Lec03 stu1.pdf",
     "fileSize": 819889,
-    "alreadyUploaded": false,
-    "selected": true
+    "alreadyUploaded": true,
+    "selected": false
   },
   {
     "messageId": 781,
@@ -740,8 +740,8 @@
     "subjectName": "Computer Organization & Architecture",
     "originalFileName": "Arc & Org Lec01-02 stu1.pdf",
     "fileSize": 990564,
-    "alreadyUploaded": false,
-    "selected": true
+    "alreadyUploaded": true,
+    "selected": false
   },
   {
     "messageId": 779,

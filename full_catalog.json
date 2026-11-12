@@ -72,6 +72,18 @@
     "selected": true
   },
   {
+    "messageId": 1296,
+    "topicId": "19",
+    "title": "Lec 07 (طالب 4)",
+    "type": "Lecture",
+    "subjectId": 5,
+    "subjectName": "Linear Algebra",
+    "originalFileName": "Linear Algebra Lec 7 stu4.pdf",
+    "fileSize": 344310,
+    "alreadyUploaded": false,
+    "selected": true
+  },
+  {
     "messageId": 91,
     "topicId": "19",
     "title": "Lec 01 (طالب 1)",
@@ -776,6 +788,54 @@
     "subjectName": "Web Development",
     "originalFileName": "section 1.pdf",
     "fileSize": 401075,
+    "alreadyUploaded": true,
+    "selected": false
+  },
+  {
+    "messageId": 1284,
+    "topicId": "21",
+    "title": "Lec 04",
+    "type": "Lecture",
+    "subjectId": 3,
+    "subjectName": "Operating Systems",
+    "originalFileName": "Operating Systems Lec04.pdf",
+    "fileSize": 1072771,
+    "alreadyUploaded": true,
+    "selected": false
+  },
+  {
+    "messageId": 1283,
+    "topicId": "21",
+    "title": "Lec 03",
+    "type": "Lecture",
+    "subjectId": 3,
+    "subjectName": "Operating Systems",
+    "originalFileName": "Operating Systems Lec03.pdf",
+    "fileSize": 1330980,
+    "alreadyUploaded": true,
+    "selected": false
+  },
+  {
+    "messageId": 1282,
+    "topicId": "21",
+    "title": "Lec 02",
+    "type": "Lecture",
+    "subjectId": 3,
+    "subjectName": "Operating Systems",
+    "originalFileName": "Operating Systems Lec02.pdf",
+    "fileSize": 910289,
+    "alreadyUploaded": true,
+    "selected": false
+  },
+  {
+    "messageId": 1281,
+    "topicId": "21",
+    "title": "Lec 01",
+    "type": "Lecture",
+    "subjectId": 3,
+    "subjectName": "Operating Systems",
+    "originalFileName": "Operating Systems Lec01.pdf",
+    "fileSize": 1791213,
     "alreadyUploaded": true,
     "selected": false
   },

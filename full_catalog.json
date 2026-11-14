@@ -792,6 +792,30 @@
     "selected": false
   },
   {
+    "messageId": 1369,
+    "topicId": "14",
+    "title": "Lec 03",
+    "type": "Lecture",
+    "subjectId": 2,
+    "subjectName": "Computer Organization & Architecture",
+    "originalFileName": "Assembly Level Organization  MCQ (3).pdf",
+    "fileSize": 1019510,
+    "alreadyUploaded": true,
+    "selected": false
+  },
+  {
+    "messageId": 1368,
+    "topicId": "14",
+    "title": "Lec 01",
+    "type": "Lecture",
+    "subjectId": 2,
+    "subjectName": "Computer Organization & Architecture",
+    "originalFileName": "Data Representation MCQ (1).pdf",
+    "fileSize": 527993,
+    "alreadyUploaded": true,
+    "selected": false
+  },
+  {
     "messageId": 1284,
     "topicId": "21",
     "title": "Lec 04",

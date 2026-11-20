@@ -492,18 +492,6 @@
     "selected": true
   },
   {
-    "messageId": 1167,
-    "topicId": "21",
-    "title": "Lec 06",
-    "type": "Lecture",
-    "subjectId": 3,
-    "subjectName": "Operating Systems",
-    "originalFileName": "Operating Systems Lec06 (also Ch07).pdf",
-    "fileSize": 1011417,
-    "alreadyUploaded": false,
-    "selected": true
-  },
-  {
     "messageId": 761,
     "topicId": "21",
     "title": "Sec 01",

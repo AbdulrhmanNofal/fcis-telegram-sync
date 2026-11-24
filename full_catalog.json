@@ -840,6 +840,30 @@
     "selected": false
   },
   {
+    "messageId": 1485,
+    "topicId": "14",
+    "title": "Sec 06",
+    "type": "Section",
+    "subjectId": 2,
+    "subjectName": "Computer Organization & Architecture",
+    "originalFileName": "CoArch-lab06_Assembly_part03.pdf",
+    "fileSize": 635611,
+    "alreadyUploaded": false,
+    "selected": true
+  },
+  {
+    "messageId": 1483,
+    "topicId": "14",
+    "title": "Sec 05",
+    "type": "Section",
+    "subjectId": 2,
+    "subjectName": "Computer Organization & Architecture",
+    "originalFileName": "CoArch-lab05_Assembly_part02.pdf",
+    "fileSize": 459811,
+    "alreadyUploaded": false,
+    "selected": true
+  },
+  {
     "messageId": 1460,
     "topicId": "21",
     "title": "Lec 05",

@@ -492,6 +492,18 @@
     "selected": true
   },
   {
+    "messageId": 1455,
+    "topicId": "21",
+    "title": "Lec 07",
+    "type": "Lecture",
+    "subjectId": 3,
+    "subjectName": "Operating Systems",
+    "originalFileName": "Operating Systems Lec07.pdf",
+    "fileSize": 1011417,
+    "alreadyUploaded": false,
+    "selected": true
+  },
+  {
     "messageId": 761,
     "topicId": "21",
     "title": "Sec 01",
@@ -884,18 +896,6 @@
     "subjectName": "Operating Systems",
     "originalFileName": "ch 05 part 2.pdf",
     "fileSize": 1092234,
-    "alreadyUploaded": false,
-    "selected": true
-  },
-  {
-    "messageId": 1455,
-    "topicId": "21",
-    "title": "Lec 07",
-    "type": "Lecture",
-    "subjectId": 3,
-    "subjectName": "Operating Systems",
-    "originalFileName": "Operating Systems Lec07.pdf",
-    "fileSize": 1011417,
     "alreadyUploaded": false,
     "selected": true
   },

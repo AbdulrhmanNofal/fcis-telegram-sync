@@ -504,6 +504,30 @@
     "selected": true
   },
   {
+    "messageId": 1459,
+    "topicId": "21",
+    "title": "Lec 08",
+    "type": "Lecture",
+    "subjectId": 3,
+    "subjectName": "Operating Systems",
+    "originalFileName": "ch 08 part 1.pdf",
+    "fileSize": 1077230,
+    "alreadyUploaded": false,
+    "selected": true
+  },
+  {
+    "messageId": 1460,
+    "topicId": "21",
+    "title": "Lec 08",
+    "type": "Lecture",
+    "subjectId": 3,
+    "subjectName": "Operating Systems",
+    "originalFileName": "ch 08 part 2.pdf",
+    "fileSize": 1092234,
+    "alreadyUploaded": false,
+    "selected": true
+  },
+  {
     "messageId": 761,
     "topicId": "21",
     "title": "Sec 01",
@@ -872,30 +896,6 @@
     "subjectName": "Computer Organization & Architecture",
     "originalFileName": "CoArch-lab05_Assembly_part02.pdf",
     "fileSize": 459811,
-    "alreadyUploaded": false,
-    "selected": true
-  },
-  {
-    "messageId": 1460,
-    "topicId": "21",
-    "title": "Lec 05",
-    "type": "Lecture",
-    "subjectId": 3,
-    "subjectName": "Operating Systems",
-    "originalFileName": "ch 05 part 1.pdf",
-    "fileSize": 1077230,
-    "alreadyUploaded": false,
-    "selected": true
-  },
-  {
-    "messageId": 1459,
-    "topicId": "21",
-    "title": "Lec 05",
-    "type": "Lecture",
-    "subjectId": 3,
-    "subjectName": "Operating Systems",
-    "originalFileName": "ch 05 part 2.pdf",
-    "fileSize": 1092234,
     "alreadyUploaded": false,
     "selected": true
   },
